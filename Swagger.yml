@@ -1,0 +1,477 @@
+openapi: 3.0.0
+info:
+  title: Delilah Resto
+  description: Esta API gestionará la información del resto
+  version: 1.0.0
+servers:
+- url: https://virtserver.swaggerhub.com/josefinabortoletto/delilahRestoAPI/1.0.0
+  description: SwaggerHub API Auto Mocking
+- url: localhost:3000/josefinabortoletto/delilahRestoAPI/1.0.0
+  description: SwaggerHub API Auto Mocking
+paths:
+  /usuarios:
+    get:
+      tags:
+      - administrador
+      summary: Obtener todos los usuarios creados
+      description: Este endpoint devolverá todos los usuarios existentes en la base
+        de datos
+      responses:
+        "200":
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/usuarios'
+        "500":
+          description: No existen usuarios creados
+      security:
+      - autenticacionJWT: []
+    post:
+      tags:
+      - clientes
+      summary: Crear un nuevo usuario
+      description: Crear un nuevo usuario en la base de datos
+      requestBody:
+        description: Optional description in *Markdown*
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/usuarios'
+          text/plain:
+            schema:
+              type: string
+        required: true
+      responses:
+        "201":
+          description: usuario creado
+          content:
+            aplication/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/usuarios'
+        "500":
+          description: No pudo crearse el usuario especificado
+  /usuarios/{id}:
+    get:
+      tags:
+      - administrador
+      - clientes
+      summary: Obtener usuario por ID
+      description: Obtener usuario ingresado
+      parameters:
+      - name: id
+        in: path
+        description: Id del usuario
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+          example: 1234
+      responses:
+        "200":
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/usuarios'
+        "500":
+          description: Usuario no encontrada
+      security:
+      - autenticacionJWT: []
+    put:
+      tags:
+      - administrador
+      - clientes
+      summary: Modificar un usuario especifico
+      description: Modificar un usuario creado en la base de datos
+      parameters:
+      - name: id
+        in: path
+        description: Id del usuario
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+          example: 1234
+      requestBody:
+        description: Contenido a modificar
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/usuarios'
+      responses:
+        "200":
+          description: Usuario modificado
+        "401":
+          description: Access token is missing or invalid
+        "404":
+          description: El usuario indicado no existe.
+      security:
+      - autenticacionJWT: []
+  /usuarios/autenticar:
+    post:
+      tags:
+      - administrador
+      - clientes
+      summary: Autenticar un usuario
+      description: Autenticar los usuarios creados en la base de datos
+      requestBody:
+        description: Optional description in *Markdown*
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/usuarios'
+          text/plain:
+            schema:
+              type: string
+        required: true
+      responses:
+        "200":
+          description: ok
+          content:
+            aplication/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/usuarios'
+        "500":
+          description: No pudo autenticarse el usuario
+  /productos:
+    get:
+      tags:
+      - administrador
+      - clientes
+      summary: Obtener todos los productos creados
+      description: Este endpoint devolverá todos los productos existentes en la base
+        de datos
+      responses:
+        "200":
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/productos'
+        "500":
+          description: No existe productos creados
+    post:
+      tags:
+      - administrador
+      summary: Crear un nuevo producto
+      description: Crear un nuevo producto en la base de datos
+      requestBody:
+        description: Optional description in *Markdown*
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/productos'
+          text/plain:
+            schema:
+              type: string
+        required: true
+      responses:
+        "201":
+          description: producto creado
+          content:
+            aplication/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/productos'
+        "500":
+          description: No pudo crearse el producto
+      security:
+      - autenticacionJWT: []
+  /productos/{id}:
+    get:
+      tags:
+      - administrador
+      - clientes
+      summary: Obtener el producto por ID
+      description: Obtener el producto indicado
+      parameters:
+      - name: id
+        in: path
+        description: Id del producto
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+          example: 1234
+      responses:
+        "200":
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/productos'
+        "500":
+          description: Producto no encontrada
+    put:
+      tags:
+      - administrador
+      summary: Modificar un producto especifico
+      description: Modificar un producto creado en la base de datos
+      parameters:
+      - name: id
+        in: path
+        description: Id del producto
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+          example: 1234
+      requestBody:
+        description: Contenido a modificar
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/productos'
+      responses:
+        "200":
+          description: Producto modificado
+        "401":
+          description: Access token is missing or invalid
+        "404":
+          description: El producto indicado no existe.
+      security:
+      - autenticacionJWT: []
+  /pedidos:
+    get:
+      tags:
+      - administrador
+      - clientes
+      summary: Obtener todos los pedidos creados
+      description: Este endpoint devolverá todos los pedidos existentes en la base
+        de datos
+      responses:
+        "200":
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/pedidos'
+        "500":
+          description: No existe pedidos creados
+      security:
+      - autenticacionJWT: []
+    post:
+      tags:
+      - clientes
+      summary: Realizar un nuevo pedido
+      description: Crear un nuevo pedido en la base de datos
+      requestBody:
+        description: Optional description in *Markdown*
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/pedidos'
+          text/plain:
+            schema:
+              type: string
+        required: true
+      responses:
+        "201":
+          description: pedido creado
+          content:
+            aplication/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/pedidos'
+        "500":
+          description: No pudo crearse el pedido
+      security:
+      - autenticacionJWT: []
+  /pedidos/{id}:
+    get:
+      tags:
+      - administrador
+      - clientes
+      summary: Obtener un pedido especificado por ID
+      description: Obtener el pedido indicado
+      parameters:
+      - name: id
+        in: path
+        description: Id del pedido
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+          example: 1234
+      responses:
+        "200":
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/pedidos'
+        "500":
+          description: Pedido no encontrada
+      security:
+      - autenticacionJWT: []
+    put:
+      tags:
+      - administrador
+      summary: Actualizar un pedido especifico
+      description: Actualizar un pedido creado en la base de datos
+      parameters:
+      - name: id
+        in: path
+        description: Id del pedido
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+          example: 1234
+      requestBody:
+        description: Contenido a modificar
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/pedidos'
+      responses:
+        "200":
+          description: Pedido modificado
+        "401":
+          description: Access token is missing or invalid
+        "404":
+          description: El pedido indicado no existe.
+      security:
+      - autenticacionJWT: []
+components:
+  schemas:
+    usuarios:
+      required:
+      - id
+      - usuario
+      - nombre
+      - apellido
+      - correo
+      - telefono
+      - direccionDeEnvio
+      - password
+            
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        usuario:
+          type: string
+          example: rfinlangie
+        nombre:
+          type: string
+          example: Regina
+        apellido:
+          type: string
+          example: Filangie   
+        correo:
+          type: string
+          example: regina.filangie@gmail.com
+        telefono:
+          type: number
+          example: 5493513222111
+        direccionDeEnvio:
+          type: string
+          example: Central Perk
+        password:
+          type: string
+          example: rf1123
+        fechaAlta:
+          type: string
+          example: 01/11/2019
+        fechaModificacion:
+          type: string
+          example: 01/11/2019
+        estado:
+          type: string
+          example: Activo
+    productos:
+      required:
+      - descripcion
+      - fechaAlta
+      - fechaModificacion
+      - foto
+      - id
+      - precio
+      - producto
+      - stock
+      - estado
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        foto:
+          type: string
+          example: https://www.imgProductos.com/1.jpg
+        producto:
+          type: string
+          example: Hambuerguesa clasica
+        descripcion:
+          type: string
+          example: Hamburguesa casera de carne vacuna, queso cheddar, lechuga y tomate
+        precio:
+          type: string
+          example: "350"
+        fechaAlta:
+          type: string
+          example: 01/11/2019
+        fechaModificacion:
+          type: string
+          example: 01/11/2019
+        stock:
+          type: number
+          example: 3
+        estado:
+          type: string
+          example: Activo
+    pedidos:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        cliente:
+          type: object
+          example: Usuario
+        cantidad:
+          type: integer
+          example: 1
+        detalle:
+          type: object
+          example: Producto
+        total:
+          type: integer
+          example: 350
+        formaDePago:
+          type: string
+          example: Efectivo
+        estado:
+          type: string
+          example: Preparando
+  securitySchemes:
+    autenticacionJWT:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

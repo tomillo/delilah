@@ -1,0 +1,28 @@
+{
+  "name": "proyectodelilahresto",
+  "version": "1.0.0",
+  "description": "API de pedidos",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app.js",
+    "dev": "nodemon",
+    "db:setup": "node db/-setup",
+    "db:seed": "coss-env SEED-1 node db/0-setup"
+  },
+  "author": "Josefina Bortoletto",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "express-session": "^1.17.1",
+    "jsonwebtoken": "^8.5.1",
+    "moment": "^2.28.0",
+    "morgan": "^1.10.0",
+    "mysql2": "^2.1.0",
+    "nodemon": "^2.0.4",
+    "sequelize": "^6.3.5"
+  },
+  "devDependencies": {}
+}
