@@ -6,21 +6,20 @@ const moment = require('moment');
 const Sequelize = require('sequelize');
 const privateKey = "112358";
 
-const db = require("../DB/mysql_connection");
+const db = require("../db/mysql_connection");
 
 async function signValidator(userName, password){
-    const userSelect = db.sequelize.query(`SELECT * FROM users WHERE (user = '${userName}' OR email = '${userName}') 
-                        AND password = '${password}'`,
-
-    {
-        type: db.Sequelize.QueryTypes.SELECT,
+    const userSelect = db.sequelize.query(`
+        SELECT * FROM users
+        WHERE (user = '${userName}' OR email = '${userName}') AND password = '${password}'`,
+        {
+            type: db.Sequelize.QueryTypes.SELECT,
             raw: true,
             plain: false,
-            logging: console.log
-    }).then(results => results);
+            // logging: console.log
+        }
+    ).then(results => results);
     return userSelect;
-             
-
 }
 
 router.post('/', async (req, res) => {
@@ -30,7 +29,7 @@ router.post('/', async (req, res) => {
     const userId = validated[0].id;
 
     if(validated.length==0){
-        res.json({error: 'usuario o contraseña incorrecta'})
+        res.json({error: 'Usuario o contraseña incorrecta'})
     }else {
 
         const token = jwt.sign({

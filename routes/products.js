@@ -32,7 +32,7 @@ router.post('/' , productValidator, (req , res) => {
     const fechaAlta = moment().format("YYYY-MM-DD");
     const fechaModificacion = moment().format("YYYY-MM-DD");
     const addUser =  db.query(`INSERT INTO productos(producto, descripcion, foto, precio, stock, fecha_alta, fecha_modificacion, id_estado) VALUES('${datos.producto}', '${datos.descripcion}', '${datos.foto}', '${datos.precio}', '${datos.stock}', '${fechaAlta}', '${fechaModificacion}', '${datos.id_estado}')`);
-    res.json(`Producto ingresado correctamente y agregado a la DB ${datos.producto}`)
+    res.status(201).json(`Producto agregado correctamente`)
 })
 //CLIENTE y ADMIN para buscar un usuario especifico por ID
 router.get('/:id' , (req , res) => {

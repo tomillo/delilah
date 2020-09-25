@@ -4,12 +4,12 @@ info:
   description: Esta API gestionará la información del resto
   version: 1.0.0
 servers:
-- url: https://virtserver.swaggerhub.com/josefinabortoletto/delilahRestoAPI/1.0.0
-  description: SwaggerHub API Auto Mocking
-- url: localhost:3000/josefinabortoletto/delilahRestoAPI/1.0.0
-  description: SwaggerHub API Auto Mocking
+# - url: https://virtserver.swaggerhub.com/josefinabortoletto/delilahRestoAPI/1.0.0
+#   description: SwaggerHub API Auto Mocking
+- url: http://localhost:3000
+  description: Localhost
 paths:
-  /usuarios:
+  /users:
     get:
       tags:
       - administrador
@@ -24,7 +24,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/usuarios'
+                  $ref: '#/components/schemas/users'
         "500":
           description: No existen usuarios creados
       security:
@@ -39,7 +39,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/usuarios'
+              $ref: '#/components/schemas/users'
           text/plain:
             schema:
               type: string
@@ -52,10 +52,10 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/usuarios'
+                  $ref: '#/components/schemas/users'
         "500":
           description: No pudo crearse el usuario especificado
-  /usuarios/{id}:
+  /users/{id}:
     get:
       tags:
       - administrador
@@ -79,7 +79,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/usuarios'
+                $ref: '#/components/schemas/users'
         "500":
           description: Usuario no encontrada
       security:
@@ -106,7 +106,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/usuarios'
+              $ref: '#/components/schemas/users'
       responses:
         "200":
           description: Usuario modificado
@@ -116,7 +116,7 @@ paths:
           description: El usuario indicado no existe.
       security:
       - autenticacionJWT: []
-  /usuarios/autenticar:
+  /users/autenticar:
     post:
       tags:
       - administrador
@@ -128,7 +128,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/usuarios'
+              $ref: '#/components/schemas/users'
           text/plain:
             schema:
               type: string
@@ -141,7 +141,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/usuarios'
+                  $ref: '#/components/schemas/users'
         "500":
           description: No pudo autenticarse el usuario
   /productos:
@@ -360,15 +360,14 @@ paths:
       - autenticacionJWT: []
 components:
   schemas:
-    usuarios:
+    users:
       required:
-      - id
-      - usuario
-      - nombre
-      - apellido
-      - correo
-      - telefono
-      - direccionDeEnvio
+      - user
+      - name
+      - last_name
+      - email
+      - phone
+      - address
       - password
             
       type: object
@@ -376,36 +375,36 @@ components:
         id:
           type: integer
           example: 1
-        usuario:
+        user:
           type: string
           example: rfinlangie
-        nombre:
+        name:
           type: string
           example: Regina
-        apellido:
+        last_name:
           type: string
           example: Filangie   
-        correo:
+        email:
           type: string
           example: regina.filangie@gmail.com
-        telefono:
+        phone:
           type: number
           example: 5493513222111
-        direccionDeEnvio:
+        address:
           type: string
           example: Central Perk
         password:
           type: string
           example: rf1123
-        fechaAlta:
-          type: string
-          example: 01/11/2019
-        fechaModificacion:
-          type: string
-          example: 01/11/2019
-        estado:
-          type: string
-          example: Activo
+        date:
+          type: date
+          example: 2019/01/11
+        status:
+          type: integer
+          example: 1
+        role:
+          type: integer
+          example: 1
     productos:
       required:
       - descripcion

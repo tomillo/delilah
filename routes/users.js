@@ -6,11 +6,7 @@ const moment = require('moment');
 const Sequelize = require('sequelize');
 const privateKey = "112358";
 
-
-
-
-const db = require("../DB/mysql_connection");
-// const { sequelize } = require('../DB/mysql_connection');
+const db = require("../db/mysql_connection");
 
 async function contactValidator(req, res, next) {
     //validar correo y usuario con @
@@ -30,9 +26,9 @@ async function contactValidator(req, res, next) {
     
     if (searchUser_dup.length != 0) {
 		if (searchUser_dup[0].user == user) {
-			res.status(400).json('El nombre de usuario ya existe.');
+			res.status(400).json('El nombre de usuario ya existe');
 		} else if (searchUser_dup[0].email == email) {
-			res.status(400).json('El correo ya existe.');
+			res.status(400).json('El correo ya existe');
 		}
 	} else {
 		next();
@@ -48,7 +44,7 @@ function authenticateUser(req, res, next) {
             req.token = bearerToken;
             next();
         } else {
-            res.sendStatus(403)
+            res.status(401).json({error: 'Error en verificar el token'})
         }
 
     } catch {
@@ -60,9 +56,9 @@ router.get('/', authenticateUser, (req, res) => {
     //validar el usuario que consulta
     jwt.verify(req.token, privateKey, (error, authData) => {
         if (error) {
-            res.status(403).json('Error en verificar el token');
+            res.status(401).json('Error en verificar el token');
         } else if (authData.role != '1') {
-            res.status(403).json('No esta autorizado a realizar la consulta');
+            res.status(401).json('No esta autorizado a realizar la consulta');
         } else {
             // console.log(`req.token ${req.token}`)
             // console.log(`authData ${authData.permisoUsuario}`)
@@ -84,18 +80,17 @@ router.get('/', authenticateUser, (req, res) => {
 })
 
 router.get('/:id', authenticateUser, (req, res) => {
-    
     jwt.verify(req.token, privateKey, async (error, authData) => {
         const idParams = req.params;
         // const role = authData.role;
         // const userId = authData.userId;
 
         if (error) {
-            res.status(403).json('Error en verificar el token');
+            res.status(401).json('Error en verificar el token');
         } else if (authData.role == 3) {
             //PONER SELECT CON ID DE USUARIO
             if (authData.userId == idParams.id) {
-                db.sequelize.query(`SELECT u.user, u.name, u.last_name, u.email, u.phone, u.address, u.date, e.description, p.name 
+                db.sequelize.query(`SELECT u.id, u.user, u.name, u.last_name, u.email, u.phone, u.address, u.date, e.description, p.name 
                                     FROM users u
                                     INNER JOIN user_status e ON u.id_status=e.id
                                     INNER JOIN role p ON p.id=u.id_role
@@ -108,7 +103,7 @@ router.get('/:id', authenticateUser, (req, res) => {
                     }
                 ).then(result => res.json(result));
             } else {
-                res.status(403).json('Su usuario no esta autorizado para ejecutar esta consulta');
+                res.status(401).json('Su usuario no esta autorizado para ejecutar esta consulta');
             }
         } else {
             // console.log(`req.token ${req.token}`)
@@ -123,7 +118,7 @@ router.get('/:id', authenticateUser, (req, res) => {
 				}
             );
             if (searchUser.length != 0) {
-                db.sequelize.query(`SELECT u.user, u.name, u.last_name, u.email, u.phone, u.address, u.date, e.description, p.name 
+                db.sequelize.query(`SELECT u.id, u.user, u.name, u.last_name, u.email, u.phone, u.address, u.date, e.description, p.name 
                                 FROM users u
                                 INNER JOIN user_status e ON u.id_status=e.id
                                 INNER JOIN role p ON p.id=u.id_role
@@ -136,7 +131,7 @@ router.get('/:id', authenticateUser, (req, res) => {
                     }
                 ).then(result => res.json(result));
             } else {
-				res.status(500).json('Este usuario no existe');
+				res.status(500).json('Usuario no encontrado');
 			}
 
         }
@@ -171,7 +166,7 @@ router.put('/:id', contactValidator, authenticateUser, (req, res) =>{
         // const userId = authData.userId;
 
         if (error) {
-            res.status(403).json('Error en verificar el token');
+            res.status(401).json('Error en verificar el token');
         } else if (authData.role == 3) {
             //PONER SELECT CON ID DE USUARIO
             if (authData.userId == idParams.id) {
@@ -180,7 +175,7 @@ router.put('/:id', contactValidator, authenticateUser, (req, res) =>{
                 
                     res.status(200).json(`El Usuario fue modificado correctamente`);
             } else {
-                res.status(403).json('Su usuario no esta autorizado para ejecutar esta consulta');
+                res.status(401).json('Su usuario no esta autorizado para ejecutar esta consulta');
             }
         } else if (authData.role == 1) {
             // console.log(`req.token ${req.token}`)
@@ -200,12 +195,12 @@ router.put('/:id', contactValidator, authenticateUser, (req, res) =>{
                     modif_date = '${modifDate}', id_role= '${newData.id_role}', id_status = '${newData.id_status}'
                     WHERE id='${idParams.id}'`);
                 
-                res.status(200).json(`El Usuario fue modificado correctamente`);
+                res.status(200).json(`El usuario fue modificado correctamente`);
             } else {
-				res.status(500).json('Este usuario no existe');
+				res.status(404).json('El usuario indicado no existe');
 			}
         } else {
-            res.status(500).json('No está autorizado para modificar usuarios.');
+            res.status(401).json('No está autorizado para modificar usuarios');
         }
     })
 })
