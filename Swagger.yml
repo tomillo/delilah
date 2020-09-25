@@ -12,7 +12,7 @@ paths:
   /users:
     get:
       tags:
-      - administrador
+      - admin
       summary: Obtener todos los usuarios creados
       description: Este endpoint devolverá todos los usuarios existentes en la base
         de datos
@@ -42,7 +42,7 @@ paths:
       - jwtAuth: []
     post:
       tags:
-      - clientes
+      - client
       summary: Crear un nuevo usuario
       description: Crear un nuevo usuario en la base de datos
       requestBody:
@@ -69,8 +69,8 @@ paths:
   /users/{id}:
     get:
       tags:
-      - administrador
-      - clientes
+      - admin
+      - client
       summary: Obtener usuario por ID
       description: Obtener usuario ingresado
       parameters:
@@ -108,8 +108,8 @@ paths:
       - jwtAuth: []
     put:
       tags:
-      - administrador
-      - clientes
+      - admin
+      - client
       summary: Modificar un usuario especifico
       description: Modificar un usuario creado en la base de datos
       parameters:
@@ -141,8 +141,8 @@ paths:
   /login:
     post:
       tags:
-      - administrador
-      - clientes
+      - admin
+      - client
       summary: Autenticar un usuario
       description: Autenticar los usuarios creados en la base de datos
       parameters:
@@ -198,8 +198,8 @@ paths:
   /products:
     get:
       tags:
-      - administrador
-      - clientes
+      - admin
+      - client
       summary: Obtener todos los productos creados
       description: Este endpoint devolverá todos los productos existentes en la base de datos
       responses:
@@ -209,7 +209,7 @@ paths:
           description: No existen productos creados
     post:
       tags:
-      - administrador
+      - admin
       summary: Crear un nuevo producto
       description: Crear un nuevo producto en la base de datos
       requestBody:
@@ -237,8 +237,8 @@ paths:
   /products/{id}:
     get:
       tags:
-      - administrador
-      - clientes
+      - admin
+      - client
       summary: Obtener el producto por ID
       description: Obtener el producto indicado
       parameters:
@@ -263,7 +263,7 @@ paths:
           description: Producto no encontrada
     put:
       tags:
-      - administrador
+      - admin
       summary: Modificar un producto especifico
       description: Modificar un producto creado en la base de datos
       parameters:
@@ -295,8 +295,8 @@ paths:
   /orders:
     get:
       tags:
-      - administrador
-      - clientes
+      - admin
+      - client
       summary: Obtener todos los pedidos creados
       description: Este endpoint devolverá todos los pedidos existentes en la base de datos
       responses:
@@ -314,7 +314,7 @@ paths:
       - jwtAuth: []
     post:
       tags:
-      - clientes
+      - client
       summary: Realizar un nuevo pedido
       description: Crear un nuevo pedido en la base de datos
       requestBody:
@@ -342,8 +342,8 @@ paths:
   /orders/{id}:
     get:
       tags:
-      - administrador
-      - clientes
+      - admin
+      - client
       summary: Obtener un pedido especificado por ID
       description: Obtener el pedido indicado
       parameters:
@@ -370,7 +370,7 @@ paths:
       - jwtAuth: []
     put:
       tags:
-      - administrador
+      - admin
       summary: Actualizar un pedido especifico
       description: Actualizar un pedido creado en la base de datos
       parameters:
