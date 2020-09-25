@@ -14,8 +14,7 @@ paths:
       tags:
       - admin
       summary: Obtener todos los usuarios creados
-      description: Este endpoint devolverá todos los usuarios existentes en la base
-        de datos
+      description: Este endpoint devolverá todos los usuarios existentes en la base de datos
       responses:
         "200":
           description: ok
