@@ -63,7 +63,7 @@ router.get('/', authenticateUser, (req, res) => {
             // console.log(`req.token ${req.token}`)
             // console.log(`authData ${authData.permisoUsuario}`)
 
-            db.sequelize.query(`SELECT u.user, u.name, u.last_name, u.email, u.phone, u.address, u.date, e.description, p.name 
+            db.sequelize.query(`SELECT u.user, u.name, u.last_name, u.email, u.phone, u.address, u.date, e.description, p.name AS role
                             FROM users u
                             INNER JOIN user_status e ON u.id_status=e.id
                             INNER JOIN role p ON p.id=u.id_role`,
@@ -90,7 +90,7 @@ router.get('/:id', authenticateUser, (req, res) => {
         } else if (authData.role == 3) {
             //PONER SELECT CON ID DE USUARIO
             if (authData.userId == idParams.id) {
-                db.sequelize.query(`SELECT u.id, u.user, u.name, u.last_name, u.email, u.phone, u.address, u.date, e.description, p.name 
+                db.sequelize.query(`SELECT u.id, u.user, u.name, u.last_name, u.email, u.phone, u.address, u.date, e.description, p.name AS role
                                     FROM users u
                                     INNER JOIN user_status e ON u.id_status=e.id
                                     INNER JOIN role p ON p.id=u.id_role
@@ -118,7 +118,7 @@ router.get('/:id', authenticateUser, (req, res) => {
 				}
             );
             if (searchUser.length != 0) {
-                db.sequelize.query(`SELECT u.id, u.user, u.name, u.last_name, u.email, u.phone, u.address, u.date, e.description, p.name 
+                db.sequelize.query(`SELECT u.id, u.user, u.name, u.last_name, u.email, u.phone, u.address, u.date, e.description, p.name AS role
                                 FROM users u
                                 INNER JOIN user_status e ON u.id_status=e.id
                                 INNER JOIN role p ON p.id=u.id_role
