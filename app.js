@@ -4,10 +4,10 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
-const usersRouter = require('./Rutas/users');
-const productsRouter = require('./Rutas/products');
-const ordersRouter = require('./Rutas/orders');
-const loginRouter = require('./Rutas/login');
+const usersRouter = require('./routes/users');
+const productsRouter = require('./routes/products');
+const ordersRouter = require('./routes/orders');
+const loginRouter = require('./routes/login');
 const moment = require('moment');
 
 //SERVER
@@ -19,7 +19,7 @@ server.use(bodyParser.json());
 //TOKEN
 const privateKey = 'token1123';
 
-const db = require("./DB/mysql_connection")
+const db = require("./db/mysql_connection")
 db.init()
   .then(async () => {
 	console.log('DB connected');
