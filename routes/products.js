@@ -5,6 +5,7 @@ const db = require("../db/mysql_connection");
 
 //ADMIN para ver todos los usuarios creados.
 router.get('/', (req, res) => {
+    const user = req.body; //PRUEBA GITHUB
     db.sequelize.query(`SELECT p.producto, p.descripcion, p.foto, p.precio, p.stock, ep.descripcion 
                             FROM productos p
                             INNER JOIN estados_productos ep ON p.id_estado = ep.id`,
