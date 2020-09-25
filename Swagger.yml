@@ -25,10 +25,21 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/users'
+        "401":
+          description: Error al verificar el token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: 'Error en verificar el token'
+                    description: 'Error'
         "500":
           description: No existen usuarios creados
       security:
-      - autenticacionJWT: []
+      - jwtAuth: []
     post:
       tags:
       - clientes
@@ -80,10 +91,21 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/users'
+        "401":
+          description: Error al verificar el token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: 'Error en verificar el token'
+                    description: 'Error'
         "500":
-          description: Usuario no encontrada
+          description: Usuario no encontrado
       security:
-      - autenticacionJWT: []
+      - jwtAuth: []
     put:
       tags:
       - administrador
@@ -109,89 +131,110 @@ paths:
               $ref: '#/components/schemas/users'
       responses:
         "200":
-          description: Usuario modificado
+          description: El usuario fue modificado correctamente
         "401":
-          description: Access token is missing or invalid
+          description: Error al verificar el token
         "404":
-          description: El usuario indicado no existe.
+          description: El usuario indicado no existe
       security:
-      - autenticacionJWT: []
-  /users/autenticar:
+      - jwtAuth: []
+  /login:
     post:
       tags:
       - administrador
       - clientes
       summary: Autenticar un usuario
       description: Autenticar los usuarios creados en la base de datos
+      parameters:
+      - name: Login
+        in: header
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: application/json
       requestBody:
-        description: Optional description in *Markdown*
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/users'
-          text/plain:
-            schema:
-              type: string
+              type: object
+              required:
+              - email
+              - password
+              properties:
+                email:
+                  type: string
+                  example: 'john@mail.com'
+                  description: 'Email'
+                password:
+                  type: string
+                  example: '123'
+                  description: 'Password'
         required: true
       responses:
         "200":
-          description: ok
+          description: ''
           content:
-            aplication/json:
+            application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/users'
-        "500":
-          description: No pudo autenticarse el usuario
-  /productos:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: '1mx6L2L7AMdEsyKy5LW9s8gt6mBxdICwosVn5sjhbwykOoQJFUru6752dwsj2THN'
+                    description: 'Token'
+        "400":
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: 'Usuario o contraseña incorrecta'
+                    description: 'Error'
+  /products:
     get:
       tags:
       - administrador
       - clientes
       summary: Obtener todos los productos creados
-      description: Este endpoint devolverá todos los productos existentes en la base
-        de datos
+      description: Este endpoint devolverá todos los productos existentes en la base de datos
       responses:
-        "200":
-          description: ok
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/productos'
-        "500":
-          description: No existe productos creados
+        "201":
+          description: Producto agregado correctamente
+        "404":
+          description: No existen productos creados
     post:
       tags:
       - administrador
       summary: Crear un nuevo producto
       description: Crear un nuevo producto en la base de datos
       requestBody:
-        description: Optional description in *Markdown*
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/productos'
+              $ref: '#/components/schemas/products'
           text/plain:
             schema:
               type: string
         required: true
       responses:
         "201":
-          description: producto creado
+          description: Producto creado
           content:
             aplication/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/productos'
+                  $ref: '#/components/schemas/products'
         "500":
           description: No pudo crearse el producto
       security:
-      - autenticacionJWT: []
-  /productos/{id}:
+      - jwtAuth: []
+  /products/{id}:
     get:
       tags:
       - administrador
@@ -215,7 +258,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/productos'
+                $ref: '#/components/schemas/products'
         "500":
           description: Producto no encontrada
     put:
@@ -239,66 +282,64 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/productos'
+              $ref: '#/components/schemas/products'
       responses:
         "200":
           description: Producto modificado
         "401":
-          description: Access token is missing or invalid
+          description: Error al verificar el token
         "404":
           description: El producto indicado no existe.
       security:
-      - autenticacionJWT: []
-  /pedidos:
+      - jwtAuth: []
+  /orders:
     get:
       tags:
       - administrador
       - clientes
       summary: Obtener todos los pedidos creados
-      description: Este endpoint devolverá todos los pedidos existentes en la base
-        de datos
+      description: Este endpoint devolverá todos los pedidos existentes en la base de datos
       responses:
-        "200":
+        "201":
           description: ok
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/pedidos'
+                  $ref: '#/components/schemas/orders'
         "500":
-          description: No existe pedidos creados
+          description: No existen pedidos creados
       security:
-      - autenticacionJWT: []
+      - jwtAuth: []
     post:
       tags:
       - clientes
       summary: Realizar un nuevo pedido
       description: Crear un nuevo pedido en la base de datos
       requestBody:
-        description: Optional description in *Markdown*
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/pedidos'
+              $ref: '#/components/schemas/orders'
           text/plain:
             schema:
               type: string
         required: true
       responses:
         "201":
-          description: pedido creado
+          description: Pedido creado
           content:
             aplication/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/pedidos'
-        "500":
-          description: No pudo crearse el pedido
+                  $ref: '#/components/schemas/orders'
+        "401":
+          description: Error al verificar el token
       security:
-      - autenticacionJWT: []
-  /pedidos/{id}:
+      - jwtAuth: []
+  /orders/{id}:
     get:
       tags:
       - administrador
@@ -322,11 +363,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/pedidos'
-        "500":
-          description: Pedido no encontrada
+                $ref: '#/components/schemas/orders'
+        "404":
+          description: El pedido indicado no existe
       security:
-      - autenticacionJWT: []
+      - jwtAuth: []
     put:
       tags:
       - administrador
@@ -348,16 +389,16 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/pedidos'
+              $ref: '#/components/schemas/orders'
       responses:
         "200":
           description: Pedido modificado
         "401":
-          description: Access token is missing or invalid
+          description: Error al verificar el token
         "404":
           description: El pedido indicado no existe.
       security:
-      - autenticacionJWT: []
+      - jwtAuth: []
 components:
   schemas:
     users:
@@ -397,80 +438,98 @@ components:
           type: string
           example: rf1123
         date:
-          type: date
-          example: 2019/01/11
+          type: string
+          format: date
+          example: "2019-01-11"
         status:
           type: integer
           example: 1
         role:
           type: integer
           example: 1
-    productos:
+    products:
       required:
-      - descripcion
-      - fechaAlta
-      - fechaModificacion
-      - foto
-      - id
-      - precio
-      - producto
+      - product_name
+      - description
+      - photo
+      - price
       - stock
-      - estado
+      - high_date
+      - modif_date
+      - id_status
       type: object
       properties:
         id:
           type: integer
           example: 1
-        foto:
-          type: string
-          example: https://www.imgProductos.com/1.jpg
-        producto:
+        product:
           type: string
           example: Hambuerguesa clasica
-        descripcion:
+        description:
           type: string
           example: Hamburguesa casera de carne vacuna, queso cheddar, lechuga y tomate
-        precio:
+        photo:
+          type: string
+          example: https://www.imgProductos.com/1.jpg
+        price:
           type: string
           example: "350"
-        fechaAlta:
+        high_date:
           type: string
-          example: 01/11/2019
-        fechaModificacion:
+          format: date
+          example: "2019-01-11"
+        modif_date:
           type: string
-          example: 01/11/2019
+          format: date
+          example: "2019-01-11"
         stock:
           type: number
           example: 3
-        estado:
-          type: string
+        id_status:
+          type: integer
           example: Activo
-    pedidos:
+    orders:
       type: object
       properties:
         id:
           type: integer
           example: 1
-        cliente:
-          type: object
-          example: Usuario
-        cantidad:
+        id_client:
+          type: integer
+          example: 2
+        id_paymenth_method:
           type: integer
           example: 1
-        detalle:
-          type: object
-          example: Producto
-        total:
+        id_order_status:
+          type: string
+          example: 1
+        products:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                example: 6
+              id_product:
+                type: integer
+                example: 12
+              quantity:
+                type: integer
+                example: 2
+        order_date:
+          type: string
+          format: date
+          example: "2019-01-11"
+        modif_date:
+          type: string
+          format: date
+          example: "2019-01-11"
+        total_order:
           type: integer
           example: 350
-        formaDePago:
-          type: string
-          example: Efectivo
-        estado:
-          type: string
-          example: Preparando
   securitySchemes:
-    autenticacionJWT:
+    jwtAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
