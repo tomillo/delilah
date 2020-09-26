@@ -60,3 +60,18 @@ router.post('/', orderValidator, (req, res) => {
 //         res.json(`El producto fue modificado correctamente y agregado a la DB ${newData.producto}`)
 // })
 module.exports = router;
+
+
+//BUSCAR SI EXISTE ORDEN "NUEVA" DE UN USUARIO ESPECIFICO - MIDDLEWARE
+// const idOrdenExistente = db.query(SELECT o.id FROM orders o WHERE id_client = ${authdata.userId} AND id_order_Status = "1")
+
+
+//if(idOrdenExistente.lenght != 0)
+//POST ORDER_DETAIL  -- SIEMPRE LA RUTA SERA /ORDERS 
+//{ agregar producto idOrdenExistente.id} 
+
+//ORDER AND ORDER_DETAIL
+//else{ crear orden y agregar producto }
+
+
+
