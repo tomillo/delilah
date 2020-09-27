@@ -111,7 +111,7 @@ router.post('/', authenticateUser, (req, res) => {
 
                 //AGREGO PRODUCTO A ORDERS_dETAIL
                 const addOrderDetail = db.query(`INSERT INTO order_detail(id_order, id_product, quantity) 
-                                                VALUES('${registeredOrder.id}', '${product}', '${orderData.quantity}')`);
+                                                VALUES('${registeredOrder.id}', '${product.id}', '${orderData.quantity}')`);
 
                 //ACTUALIZO LA FECHA DE MODIFICACION DE ORDER                               
                 const updateOrder = db.query(`UPDATE order o SET modification_date = ${modificationOrder}
@@ -125,7 +125,7 @@ router.post('/', authenticateUser, (req, res) => {
 
                 //FALTA RETORNAR ID DE LA ORDEN CREADA PARA ASIGNARSELA A LA ORDER DETAIL!!!!!!!///                              
                 const addProduct = db.query(`INSERT INTO order_detail(id_order, id_product, quantity) 
-                                            VALUES('${createOrder.id}', '${product}', '${orderData.quantity}')`);                             
+                                            VALUES('${ponerIDdeOrdenCreada}', '${product.id}', '${orderData.quantity}')`);                             
             }
 
         }
