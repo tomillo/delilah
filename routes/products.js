@@ -68,7 +68,8 @@ router.post('/', authenticateUser, (req, res) => {
             res.status(401).json('No esta autorizado a crear un producto');
         } else {
             const addProduct = db.query(`INSERT INTO products(product_name, description, photo, price, stock, entry_date, modification_date, id_status) VALUES('${data.product}', '${data.description}', '${data.photo}', '${data.price}', '${data.stock}', '${entryDate}', '${modificationDate}', '${idStatus}')`);
-            res.status(201).json(`Producto agregado correctamente`)
+            res.status(201).json(`Producto agregado correctamente`);
+            // console.log(addProduct);
         }
     })
 })
