@@ -45,7 +45,6 @@ paths:
       summary: Crear un nuevo usuario
       description: Crear un nuevo usuario en la base de datos
       requestBody:
-        description: Optional description in *Markdown*
         content:
           application/json:
             schema:
