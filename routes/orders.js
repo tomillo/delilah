@@ -29,9 +29,25 @@ router.get('/', authenticateUser, (req, res) => {
     jwt.verify(req.token, privateKey, (error, authData) => {
         if (error) {
             res.status(401).json('Error en verificar el token');
-        } else if (authData.role != '1' || authData.role != '2') {
+        } else if (authData.role = '3') {
             res.status(401).json('No esta autorizado a realizar la consulta');
-        } else {
+        } else if (authData.role = '1'){
+            db.sequelize.query(`SELECT u.user, u.name, u.last_name, u.phone, u.address, pm.description AS payment_method, 
+                        os.description AS order_status, p.product_name, o.total_order
+                        FROM users u
+                        INNER JOIN orders o ON o.id_client = u.id
+                        INNER JOIN payment_methods pm ON pm.id = o.id_payment_method
+                        INNER JOIN orders_status os ON os.id = o.id_order_status
+                        INNER JOIN order_detail od ON od.id_order = o.id
+                        INNER JOIN products p ON p.id = od.id_product`,
+                {
+                    type: db.Sequelize.QueryTypes.SELECT,
+                    raw: true,
+                    plain: false,
+                    logging: console.log
+                }
+            ).then(result => res.json(result));
+        }else{
             db.sequelize.query(`SELECT u.user, u.name, u.last_name, u.phone, u.address, pm.description AS payment_method, 
                         os.description AS order_status, p.product_name, o.total_order
                         FROM users u
