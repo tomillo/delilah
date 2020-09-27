@@ -1,64 +1,86 @@
 const express = require('express');
 const moment = require('moment');
+const { INSERT } = require('sequelize/types/lib/query-types');
 const router = express.Router();
 const db = require("../db/mysql_connection");
 
-function orderValidator(req, res, next) {
-    const { id_cliente, id_forma_pago, id_producto, cantidad } = req.body;
-    if (!id_cliente || !id_forma_pago || !id_producto || !cantidad) {
-        res.status(400).json('Falta completar un campo');
-
-        if (cantidad > 0) {
-            res.status(400).json('La cantidad debe ser mayor a 0');
+function authenticateUser(req, res, next) {
+    try {
+        const bearerHeader = req.headers['authorization'];
+        console.log(`bearerheader ${bearerHeader}`)
+        if (typeof bearerHeader !== 'undefined') {
+            const bearerToken = bearerHeader.split(" ")[1];
+            req.token = bearerToken;
+            next();
+        } else {
+            res.status(401).json({error: 'Error en verificar el token'})
         }
 
-    } else {
-        next();
+    } catch {
+        res.json({ error: 'Error al validar usuario' })
     }
 }
-router.post('/', orderValidator, (req, res) => {
-    const orderInfo = req.body;
-    console.log(orderInfo);
-    const fechaPedido = moment().format("YYYY-MM-DD");
-    const fechaModifPedido = moment().format("YYYY-MM-DD");
-    const estadoPedido = "1";
+router.post('/', authenticateUser, (req, res) => {
+    const { productName, quantity } = req.body;
+    const orderData = req.body;
+    const entryDateOrder = moment().format("YYYY-MM-DD");
+    const modificationOrder = moment().format("YYYY-MM-DD");
+    const orderStatus = "1";
     let totalPedido = "0";
 
-    const addOrder = db.query(`INSERT INTO pedidos (id_cliente, id_forma_pago, id_estado_pedido, fecha_pedido, fecha_modificacion, total_pedido) VALUES('${orderInfo.id_cliente}', '${orderInfo.id_forma_pago}', '${estadoPedido}', '${fechaPedido}', '${fechaModifPedido}', '${totalPedido}' `);
-    
-    const idPedido = db.query(`SELECT id FROM pedidos WHERE fecha_alta = ${fechaPedido}`);
-    
-    const detailOrder = db.query(`INSERT INTO detalle_pedido (id_pedido, id_producto, id_cantidad) VALUES ('${idPedido}', '${orderInfo.id_producto}', '${orderInfo.cantidad}')`)
-    
-    res.json(`Producto ingresado correctamente y agregado a la DB ${datos.producto}`)
+    //BUSCO EL ID DEL PRODUCTO SELECCIONADO
+    const product = db.sequelize.query(`SELECT p.id FROM products p 
+                                                    WHERE product_name = ${orderData.productName}`,
+        {
+            type: db.Sequelize.QueryTypes.SELECT,
+            raw: true,
+            plain: false,
+            logging: console.log
+        }
+    ).then(result => res.json(result));
 
+
+    jwt.verify(req.token, privateKey, (error, authData) => {
+        if (error) {
+            res.status(401).json('Error en verificar el token');
+        } else { //CREAR DETAIL ORDER
+
+            //BUSCO ID DE ORDEN CON STATUS "NUEVA"
+            const registeredOrder = db.sequelize.query(`SELECT p.id FROM products o 
+                                                        WHERE id_client = ${authData.userId} 
+                                                        AND id_order_status = "1"`,
+                {
+                    type: db.Sequelize.QueryTypes.SELECT,
+                    raw: true,
+                    plain: false,
+                    logging: console.log
+                }
+            ).then(result => res.json(result));
+
+            console.log(registeredOrder);
+
+            if (registeredOrder.lenght != 0) {
+
+                //AGREGO PRODUCTO A ORDERS_dETAIL
+                const addOrderDetail = db.query(`INSERT INTO order_detail(id_order, id_product, quantity) 
+                                                VALUES('${registeredOrder.id}', '${product}', '${orderData.quantity}')`);
+
+                //ACTUALIZO LA FECHA DE MODIFICACION DE ORDER                               
+                const updateOrder = db.query(`UPDATE order o SET modification_date = ${modificationOrder}
+                                              WHERE o.id = ${registeredOrder.id}`);
+
+                res.status(201).json(`Se ha agregado el producto ${orderData.productName} al carrito`);
+            } else { //CREATE ORDER AND DETAIL ORDER
+
+                const createOrder = db.query(`INSERT INTO order (id_client, id_payment_method, id_order_status, entry_date, modification_date, total order)
+                                              VALUES('${authData.userId}')`);//<----
+            }
+
+        }
+
+
+    })
 })
-//CLIENTE y ADMIN para buscar un usuario especifico por ID
-// router.get('/:id' , (req , res) => {
-//     const idParams = req.params.id;
-//     db.sequelize.query(`SELECT p.producto, p.descripcion, p.foto, p.precio, p.stock, ep.descripcion 
-//                             FROM productos p
-//                             INNER JOIN estados_productos ep ON p.id_estado = ep.id
-//                             WHERE p.id = ${idParams}`,
-//         {
-//             type: db.Sequelize.QueryTypes.SELECT,
-//             raw: true,
-//             plain: false,
-//             logging: console.log
-//         }
-//     ).then(resultados => res.json(resultados));
-// })
-// // CLIENTE Y ADMIN para modificar un usuario especifico por ID
-// router.put('/:id' , (req , res) => {
-//         const idParams = req.params;
-//         // console.log(idParams);
-//         const newData = req.body;
-//         const fechaModifUpdate = moment().format("YYYY-MM-DD");
-//         const updateUser = db.query(`UPDATE productos SET producto = '${newData.producto}', descripcion = '${newData.descripcion}',foto = '${newData.foto}',
-//                         stock = '${newData.stock}', fecha_modificacion = '${fechaModifUpdate}', id_estado= '${newData.id_estado}'
-//                         WHERE id='${idParams.id}'`);
-//         res.json(`El producto fue modificado correctamente y agregado a la DB ${newData.producto}`)
-// })
 module.exports = router;
 
 
@@ -75,3 +97,10 @@ module.exports = router;
 
 
 
+// const addOrder = db.query(`INSERT INTO pedidos (id_cliente, id_forma_pago, id_estado_pedido, fecha_pedido, fecha_modificacion, total_pedido) VALUES('${orderInfo.id_cliente}', '${orderInfo.id_forma_pago}', '${estadoPedido}', '${fechaPedido}', '${fechaModifPedido}', '${totalPedido}' `);
+    
+//     const idPedido = db.query(`SELECT id FROM pedidos WHERE fecha_alta = ${fechaPedido}`);
+    
+//     const detailOrder = db.query(`INSERT INTO detalle_pedido (id_pedido, id_producto, id_cantidad) VALUES ('${idPedido}', '${orderInfo.id_producto}', '${orderInfo.cantidad}')`)
+    
+//     res.json(`Producto ingresado correctamente y agregado a la DB ${datos.producto}`//)

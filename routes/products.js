@@ -73,7 +73,7 @@ router.post('/', authenticateUser, (req, res) => {
     })
 })
 
-router.put('/:id' , (req , res) => {
+router.put('/:id' , authenticateUser, (req , res) => {
     const { product, description, photo, price, stock, idStatus } = req.body;
     const newData = req.body;
     const modificationDate = moment().format("YYYY-MM-DD");
