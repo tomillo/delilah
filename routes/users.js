@@ -63,7 +63,7 @@ router.get('/', authenticateUser, (req, res) => {
             // console.log(`req.token ${req.token}`)
             // console.log(`authData ${authData.permisoUsuario}`)
 
-            db.sequelize.query(`SELECT u.user, u.name, u.last_name, u.email, u.phone, u.address, u.date, e.description, p.name AS role
+            db.sequelize.query(`SELECT u.user, u.name, u.last_name, u.email, u.phone, u.address, u.entry_date, e.description, p.name AS role
                             FROM users u
                             INNER JOIN user_status e ON u.id_status=e.id
                             INNER JOIN role p ON p.id=u.id_role`,
@@ -90,7 +90,7 @@ router.get('/:id', authenticateUser, (req, res) => {
         } else if (authData.role == 3) {
             //PONER SELECT CON ID DE USUARIO
             if (authData.userId == idParams.id) {
-                db.sequelize.query(`SELECT u.id, u.user, u.name, u.last_name, u.email, u.phone, u.address, u.date, e.description, p.name AS role
+                db.sequelize.query(`SELECT u.id, u.user, u.name, u.last_name, u.email, u.phone, u.address, u.entry_date, e.description, p.name AS role
                                     FROM users u
                                     INNER JOIN user_status e ON u.id_status=e.id
                                     INNER JOIN role p ON p.id=u.id_role
@@ -118,7 +118,7 @@ router.get('/:id', authenticateUser, (req, res) => {
 				}
             );
             if (searchUser.length != 0) {
-                db.sequelize.query(`SELECT u.id, u.user, u.name, u.last_name, u.email, u.phone, u.address, u.date, e.description, p.name AS role
+                db.sequelize.query(`SELECT u.id, u.user, u.name, u.last_name, u.email, u.phone, u.address, u.entry_date, e.description, p.name AS role
                                 FROM users u
                                 INNER JOIN user_status e ON u.id_status=e.id
                                 INNER JOIN role p ON p.id=u.id_role
@@ -141,15 +141,15 @@ router.get('/:id', authenticateUser, (req, res) => {
 //CORREGIR
 router.post('/', contactValidator, (req, res) => {
     const data = req.body;
-    const date = moment().format("YYYY-MM-DD");
-    const modifDate = moment().format("YYYY-MM-DD");
+    const entryDate = moment().format("YYYY-MM-DD");
+    const modificationDate = moment().format("YYYY-MM-DD");
     const idStatus = "1";
     const idRole = "3";
 
     // console.log(fechaAlta);
     // console.log(req.body);
     
-    const addUser = db.query(`INSERT INTO users(user, name, last_name, email, phone, address, password, date, modif_date, id_status, id_role) VALUES('${data.user}', '${data.name}', '${data.lastName}', '${data.email}', '${data.phone}', '${data.address}', '${data.password}', '${date}', '${modifDate}', '${idStatus}', '${idRole}')`);
+    const addUser = db.query(`INSERT INTO users(user, name, last_name, email, phone, address, password, entry_date, modification_date, id_status, id_role) VALUES('${data.user}', '${data.name}', '${data.lastName}', '${data.email}', '${data.phone}', '${data.address}', '${data.password}', '${entryDate}', '${modificationDate}', '${idStatus}', '${idRole}')`);
     res.json(`Usuario ingresado correctamente y agregado a la DB ${data.user}`);
 
     
@@ -161,7 +161,7 @@ router.put('/:id', contactValidator, authenticateUser, (req, res) =>{
     jwt.verify(req.token, privateKey, async (error, authData) => {
         const newData = req.body;
         const idParams = req.params;
-        const modifDate = moment().format("YYYY-MM-DD");
+        const modificationDate = moment().format("YYYY-MM-DD");
         // const role = authData.role;
         // const userId = authData.userId;
 
@@ -170,7 +170,7 @@ router.put('/:id', contactValidator, authenticateUser, (req, res) =>{
         } else if (authData.role == 3) {
             //PONER SELECT CON ID DE USUARIO
             if (authData.userId == idParams.id) {
-                const updateUser = db.query(`UPDATE users SET name = '${newData.name}',last_name = '${newData.lastName}', phone = '${newData.phone}',address = '${newData.address}',password = '${newData.password}', modif_date = '${modifDate}'
+                const updateUser = db.query(`UPDATE users SET name = '${newData.name}',last_name = '${newData.lastName}', phone = '${newData.phone}',address = '${newData.address}',password = '${newData.password}', modification_date = '${modificationDate}'
                     WHERE id='${idParams.id}'`);
                 
                     res.status(200).json(`El Usuario fue modificado correctamente`);
@@ -192,7 +192,7 @@ router.put('/:id', contactValidator, authenticateUser, (req, res) =>{
             if (searchUser.length != 0) {
                 const updateUser = db.query(`UPDATE users SET name = '${newData.name}',last_name = '${newData.lastName}',
                     phone = '${newData.phone}',address = '${newData.address}', password = '${newData.password}',
-                    modif_date = '${modifDate}', id_role= '${newData.id_role}', id_status = '${newData.id_status}'
+                    modification_date = '${modificationDate}', id_role= '${newData.id_role}', id_status = '${newData.id_status}'
                     WHERE id='${idParams.id}'`);
                 
                 res.status(200).json(`El usuario fue modificado correctamente`);
