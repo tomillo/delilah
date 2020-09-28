@@ -31,7 +31,7 @@ router.get('/', authenticateUser, (req, res) => {
             res.status(401).json('No esta autorizado a realizar la consulta');
         } else if (authData.role == '1'){
             db.sequelize.query(`SELECT u.user, u.name, u.last_name, u.phone, u.address, pm.description AS payment_method, 
-                        os.description AS order_status, p.product_name, o.total_order
+                        os.description AS order_status, p.product_name, od.quantity o.total_order
                         FROM users u
                         INNER JOIN orders o ON o.id_client = u.id
                         INNER JOIN payment_methods pm ON pm.id = o.id_payment_method
@@ -66,8 +66,76 @@ router.get('/', authenticateUser, (req, res) => {
     });
 })
 
+router.get('/:id', authenticateUser, (req, res) => {
+
+    jwt.verify(req.token, privateKey, (error, authData) => {
+        const idParams = req.params;
+        if (error) {
+            res.status(401).json('Error en verificar el token');
+        } else if (authData.role == 3) {
+            if (authData.userId == idParams.id) {
+                db.sequelize.query(`SELECT u.user, u.name, u.last_name, u.phone, u.address, pm.description AS payment_method, 
+                        os.description AS order_status, p.product_name, od.quantity o.total_order
+                        FROM users u
+                        INNER JOIN orders o ON o.id_client = u.id
+                        INNER JOIN payment_methods pm ON pm.id = o.id_payment_method
+                        INNER JOIN orders_status os ON os.id = o.id_order_status
+                        INNER JOIN order_detail od ON od.id_order = o.id
+                        INNER JOIN products p ON p.id = od.id_product
+                        WHERE u.id = ${idParams.id}`,
+                    {
+                        type: db.Sequelize.QueryTypes.SELECT,
+                        raw: true,
+                        plain: false,
+                        // logging: console.log
+                    }
+                ).then(result => res.json(result));
+            } else {
+
+                res.status(401).json('Su usuario no está autorizado para ver las ordenes de otro usuario');
+
+            }
+        } else if (authData.role == 1) {
+            db.sequelize.query(`SELECT u.user, u.name, u.last_name, u.phone, u.address, pm.description AS payment_method, 
+                        os.description AS order_status, p.product_name, od.quantity o.total_order
+                        FROM users u
+                        INNER JOIN orders o ON o.id_client = u.id
+                        INNER JOIN payment_methods pm ON pm.id = o.id_payment_method
+                        INNER JOIN orders_status os ON os.id = o.id_order_status
+                        INNER JOIN order_detail od ON od.id_order = o.id
+                        INNER JOIN products p ON p.id = od.id_product
+                        WHERE u.id = ${idParams.id}`,
+                {
+                    type: db.Sequelize.QueryTypes.SELECT,
+                    raw: true,
+                    plain: false,
+                    // logging: console.log
+                }
+            ).then(result => res.json(result));
+        } else {
+            db.sequelize.query(`SELECT u.user, u.name, u.last_name, u.phone, u.address, pm.description AS payment_method, 
+                        os.description AS order_status, p.product_name, o.total_order
+                        FROM users u
+                        INNER JOIN orders o ON o.id_client = u.id
+                        INNER JOIN payment_methods pm ON pm.id = o.id_payment_method
+                        INNER JOIN orders_status os ON os.id = o.id_order_status
+                        INNER JOIN order_detail od ON od.id_order = o.id
+                        INNER JOIN products p ON p.id = od.id_product
+                        WHERE u.id = ${idParams.id} 
+                        AND o.id_order_status <> '1'`,
+                {
+                    type: db.Sequelize.QueryTypes.SELECT,
+                    raw: true,
+                    plain: false,
+                    // logging: console.log
+                }
+            ).then(result => res.json(result));
+        }
+    });
+})
+
 router.post('/', authenticateUser, async (req, res) => {
-    const { productName, quantity } = req.body;
+    const { productId, quantity } = req.body;
     const dateOrder = moment().format("YYYY-MM-DD");
     const dateOrder_mod = moment().format("YYYY-MM-DD");
     const paymentMethod = "1"
@@ -75,17 +143,17 @@ router.post('/', authenticateUser, async (req, res) => {
     let totalPedido = "0";
 
     // BUSCO EL ID DEL PRODUCTO SELECCIONADO
-    const product = await db.sequelize.query(`
-        SELECT *
-        FROM products p
-        WHERE product_name = '${productName}'`,
-        {
-            type: db.Sequelize.QueryTypes.SELECT,
-            raw: true,
-            plain: false,
-            // logging: console.log
-        }
-    ).then(result => result);
+    // const product = await db.sequelize.query(`
+    //     SELECT *
+    //     FROM products p
+    //     WHERE product_name = '${productName}'`,
+    //     {
+    //         type: db.Sequelize.QueryTypes.SELECT,
+    //         raw: true,
+    //         plain: false,
+    //         // logging: console.log
+    //     }
+    // ).then(result => result);
 
     jwt.verify(req.token, privateKey, async (error, authData) => {
         if (error) {
@@ -111,7 +179,7 @@ router.post('/', authenticateUser, async (req, res) => {
                 // AGREGO PRODUCTO A ORDERS_dETAIL
                 db.query(`
                     INSERT INTO order_detail(id_order, id_product, quantity)
-                    VALUES('${registeredOrder[0].id}', '${product[0].id}', ${quantity})
+                    VALUES('${registeredOrder[0].id}', '${productId}', ${quantity})
                 `);
 
                 // ACTUALIZO LA FECHA DE MODIFICACION DE ORDER
@@ -121,7 +189,7 @@ router.post('/', authenticateUser, async (req, res) => {
                     WHERE o.id = ${registeredOrder[0].id}
                 `);
 
-                res.status(201).json(`Se ha agregado el producto ${productName} al carrito`);
+                res.status(201).json(`Se ha agregado el producto al carrito`);
             } else {
                 // CREATE ORDER AND DETAIL ORDER
                 await db.sequelize.query(`
@@ -159,7 +227,7 @@ router.post('/', authenticateUser, async (req, res) => {
 
                 db.query(`
                     INSERT INTO order_detail(id_order, id_product, quantity) 
-                    VALUES('${newOrder[0].id}', '${product[0].id}', '${quantity}')
+                    VALUES('${newOrder[0].id}', '${productId}', '${quantity}')
                 `);                             
             }
         }
