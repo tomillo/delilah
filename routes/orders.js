@@ -23,6 +23,16 @@ function authenticateUser(req, res, next) {
     }
 }
 
+async function totalOrder(orderId){
+    db.query(`
+                    UPDATE orders o 
+                    SET total_order = (SELECT SUM(od.quantity*p.price) FROM order_detail od
+                    INNER JOIN products p ON p.id = od.id_product 
+                    WHERE od.id_order = ${orderId})
+                    WHERE o.id = ${orderId}
+                `);
+}
+
 router.get('/', authenticateUser, (req, res) => {
 
     jwt.verify(req.token, privateKey, (error, authData) => {
@@ -143,19 +153,6 @@ router.post('/', authenticateUser, async (req, res) => {
     const orderStatus = "1";
     let totalPedido = "0";
 
-    // BUSCO EL ID DEL PRODUCTO SELECCIONADO
-    // const product = await db.sequelize.query(`
-    //     SELECT *
-    //     FROM products p
-    //     WHERE product_name = '${productName}'`,
-    //     {
-    //         type: db.Sequelize.QueryTypes.SELECT,
-    //         raw: true,
-    //         plain: false,
-    //         // logging: console.log
-    //     }
-    // ).then(result => result);
-
     jwt.verify(req.token, privateKey, async (error, authData) => {
         if (error) {
             res.status(401).json('Error en verificar el token');
@@ -190,8 +187,7 @@ router.post('/', authenticateUser, async (req, res) => {
                         // logging: console.log
                     }
                 ).then(result => result);
-                console.log(isProduct[0].quantity);
-                console.log(quantity);
+                
 
                 // if (isProduct.length != 0) {
                 //     await db.query(`
@@ -216,13 +212,8 @@ router.post('/', authenticateUser, async (req, res) => {
                 `);
 
                 //ACTUALIZO TOTAL PEDIDO 
-                db.query(`
-                    UPDATE orders o 
-                    SET total_order = (SELECT SUM(od.quantity*p.price) FROM order_detail od
-                    INNER JOIN products p ON p.id = od.id_product 
-                    WHERE od.id_order = ${registeredOrder[0].id})
-                    WHERE o.id = ${registeredOrder[0].id}
-                `);
+                
+                await totalOrder(registeredOrder[0].id);
 
                 res.status(201).json(`Se ha agregado el producto al carrito`);
             } else {
@@ -271,13 +262,4 @@ router.post('/', authenticateUser, async (req, res) => {
 module.exports = router;
 
 
-//BUSCAR SI EXISTE ORDEN "NUEVA" DE UN USUARIO ESPECIFICO - MIDDLEWARE
-// const idOrdenExistente = db.query(SELECT o.id FROM orders o WHERE id_client = ${authdata.userId} AND id_order_Status = "1")
 
-
-//if(idOrdenExistente.lenght != 0)
-//POST ORDER_DETAIL  -- SIEMPRE LA RUTA SERA /ORDERS 
-//{ agregar producto idOrdenExistente.id} 
-
-//ORDER AND ORDER_DETAIL
-//else{ crear orden y agregar producto }
