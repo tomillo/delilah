@@ -95,6 +95,8 @@ async function totalOrder(orderId){
     `);
 }
 
+//ACTUALIZA EL STOCK DEL PRODUCTO POST PEDIDO
+
 // CREAR ORDEN NUEVA
 async function newOrder(userId, payment, orderStatus, dateOrder, dateOrder_mod) {
     await db.sequelize.query(`
@@ -286,6 +288,53 @@ router.post('/', authenticateUser, async (req, res) => {
         }
     })
 })
+
+//ENDPOINT PARA CAMBIAR ESTADO DE UNA ORDEN CON ROL CLIENTE
+router.put('/:id' , authenticateUser, async (req, res) => {
+    const idParams = req.params;
+    const { paymentMethod} = req.body;
+    const modificationDate = moment().format("YYYY-MM-DD");
+    jwt.verify(req.token, privateKey, async (error, authData) => {
+        if (error) {
+            res.status(401).json('Error en verificar el token');
+        } else {
+            const userOrder = await db.query(`SELECT o.id FROM orders o INNER JOIN users u ON o.id_client = u.id 
+            WHERE u.id = ${authData.userId} AND o.id_order_status = 1`);
+            
+            console.log(userOrder[0].id);
+            if ( userOrder[0].length != 0) {
+                db.query(`UPDATE orders o SET id_order_status = 2 , 
+                id_payment_method = ${paymentMethod},
+                modification_date = "${modificationDate}"
+                WHERE o.id = ${userOrder[0].id}`)
+                res.status(200).json('Se ha confirmado su compra');
+            } 
+        } 
+    })
+})
+
+// Endpoint para cambiar de estado una orden con rol Supervisor.
+router.patch('/:id' , authenticateUser, (req , res) => {
+    const idParams = req.params;
+    const { status } = req.body;
+
+    const modificationDate = moment().format("YYYY-MM-DD");
+    jwt.verify(req.token, privateKey, (error, authData) => {
+        if (error) {
+            res.status(401).json('Error en verificar el token');
+        } else if (authData.role == 3) {
+            res.status(401).json('No esta autorizado a realizar esta accion');
+        } else {
+            db.query(`UPDATE orders SET 
+                        id_order_status = ${status}, 
+                        modification_date = '${modificationDate}' 
+                        WHERE id=${idParams.id}`);
+        res.json(`Has cambiado la orden '${idParams.id}' a '${status}' exitosamente`)
+        }
+    })
+})
+// el cliente puede modificar el pedido, agregando -->POST y borrando -->DELETE productos de la orden con status nueva
+
 module.exports = router;
 
 

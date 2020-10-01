@@ -103,6 +103,10 @@ router.delete('/:id', authenticateUser, (req, res) => {
             // console.log(idParams);
             const deleteProduct = db.query(`DELETE FROM products
                     WHERE id='${idParams}'`);
+                    //CORREGIR ESTO PARA QUE SI EL ID_ORDER_STATUS ES = 1 ELIMINAR ESE ID ORDER
+                    // db.query(`DELETE FROM order_detail od 
+                    // INNER JOIN orders o ON o.id = od.id_order 
+                    // WHERE id_product= ${idParams} AND o.id_order_status=1`)
             res.json(`El producto fue eliminado correctamente`)
             
         } else {
