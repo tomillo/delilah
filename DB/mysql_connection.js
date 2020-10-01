@@ -10,7 +10,7 @@ const sequelize = new Sequelize ({
     host,
     port,
     dialect: 'mysql',
-    logging: false
+    logging: console.log
 })
 
 const init = async () => {
@@ -24,7 +24,7 @@ const query = async (q) => {
                                     {
                                       raw: true, 
                                       plain: false, 
-                                      logging: false
+                                      logging: console.log
                                     });
       return rows;
     } catch (err) {

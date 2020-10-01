@@ -23,14 +23,115 @@ function authenticateUser(req, res, next) {
     }
 }
 
+// BUSCA ID DE ORDEN CON STATUS "NUEVA"
+async function registeredOrder(userId) {
+    const order = await db.sequelize.query(`
+        SELECT *
+        FROM orders o
+        WHERE id_client = ${userId}
+        AND id_order_status = "1"`,
+        {
+            type: db.Sequelize.QueryTypes.SELECT,
+            raw: true,
+            plain: false,
+            // logging: console.log
+        }
+    ).then(result => result);
+    return order;
+}
+
+// BUSCA SI EXISTE PRODUCTO AGREGADO A LA ORDEN
+async function isProduct(productId, orderId) {
+    const product = await db.sequelize.query(`
+        SELECT od.quantity 
+        FROM order_detail od
+        WHERE od.id_product = ${productId}
+        AND od.id_order = ${orderId}`,
+        {
+            type: db.Sequelize.QueryTypes.SELECT,
+            raw: true,
+            plain: false,
+            // logging: console.log
+        }
+    ).then(result => result);
+    return product
+}
+
+// ACTUALIZA CANTIDAD DE UN PRODUCTO EN UNA ORDEN
+function updateProduct_qty(qtyExistant, qty, productId, orderId) {
+    db.query(`
+        UPDATE order_detail od 
+        SET od.quantity = (${qtyExistant} + ${qty})
+        WHERE od.id_product = ${productId}
+        AND od.id_order = ${orderId}
+    `);
+}
+
+// AGREGO PRODUCTO A ORDERS_DETAIL
+function addProduct_qty(orderId, productId, qty) {
+    db.query(`
+        INSERT INTO order_detail(id_order, id_product, quantity)
+        VALUES('${orderId}', '${productId}', ${qty})
+    `);
+}
+
+// ACTUALIZA LA FECHA DE MODIFICACION DE ORDER
+function newDateOrder(date, orderId) {
+    db.query(`
+        UPDATE orders o 
+        SET modification_date = '${date}'
+        WHERE o.id = ${orderId}
+    `);
+}
+
+// ACTUALIZA TOTAL PEDIDO
 async function totalOrder(orderId){
     db.query(`
-                    UPDATE orders o 
-                    SET total_order = (SELECT SUM(od.quantity*p.price) FROM order_detail od
-                    INNER JOIN products p ON p.id = od.id_product 
-                    WHERE od.id_order = ${orderId})
-                    WHERE o.id = ${orderId}
-                `);
+        UPDATE orders o 
+        SET total_order = (SELECT SUM(od.quantity*p.price) FROM order_detail od
+        INNER JOIN products p ON p.id = od.id_product 
+        WHERE od.id_order = ${orderId})
+        WHERE o.id = ${orderId}
+    `);
+}
+
+// CREAR ORDEN NUEVA
+async function newOrder(userId, payment, orderStatus, dateOrder, dateOrder_mod) {
+    await db.sequelize.query(`
+        INSERT INTO orders (
+            id_client,
+            id_payment_method,
+            id_order_status,
+            entry_date,
+            modification_date,
+            total_order
+        )
+        VALUES(
+            '${userId}',
+            '${payment}',
+            '${orderStatus}',
+            '${dateOrder}',
+            '${dateOrder_mod}',
+            '0'
+        )`
+    );
+}
+
+// BUSCA ID DE ORDEN CON STATUS "NUEVA"
+async function isOrder(userId) {
+    const order = await db.sequelize.query(`
+        SELECT * 
+        FROM orders o
+        WHERE id_client = ${userId} 
+        AND id_order_status = "1"`,
+        {
+            type: db.Sequelize.QueryTypes.SELECT,
+            raw: true,
+            plain: false,
+            // logging: console.log
+        }
+    ).then(result => result);
+    return order;
 }
 
 router.get('/', authenticateUser, (req, res) => {
@@ -151,7 +252,6 @@ router.post('/', authenticateUser, async (req, res) => {
     const dateOrder_mod = moment().format("YYYY-MM-DD");
     const paymentMethod = "1"
     const orderStatus = "1";
-    let totalPedido = "0";
 
     jwt.verify(req.token, privateKey, async (error, authData) => {
         if (error) {
@@ -159,102 +259,29 @@ router.post('/', authenticateUser, async (req, res) => {
         } else {
             // CREAR DETAIL ORDER
 
-            // BUSCO ID DE ORDEN CON STATUS "NUEVA"
-            const registeredOrder = await db.sequelize.query(`
-                SELECT *
-                FROM orders o
-                WHERE id_client = ${authData.userId}
-                AND id_order_status = "1"`,
-                {
-                    type: db.Sequelize.QueryTypes.SELECT,
-                    raw: true,
-                    plain: false,
-                    // logging: console.log
+            const orderData = await registeredOrder(authData.userId);
+            if (orderData.length != 0) {
+
+                const orderProduct_exist = await isProduct(productId, orderData[0].id, orderData[0].id);
+                if (orderProduct_exist.length != 0) {
+                    updateProduct_qty(orderProduct_exist[0].quantity, quantity, productId, orderData[0].id);
+                } else {
+                    addProduct_qty(orderData[0].id, productId, quantity);
                 }
-            ).then(result => result);
 
-            if (registeredOrder.length != 0) {
-
-                const isProduct = await db.sequelize.query(`
-                SELECT od.quantity 
-                FROM order_detail od
-                WHERE od.id_product = '${productId}'
-                AND od.id_order = '${registeredOrder[0].id}'`,
-                    {
-                        type: db.Sequelize.QueryTypes.SELECT,
-                        raw: true,
-                        plain: false,
-                        // logging: console.log
-                    }
-                ).then(result => result);
-                
-
-                // if (isProduct.length != 0) {
-                //     await db.query(`
-                //         UPDATE order_detail od 
-                //         SET od.quantity = ('${isProduct[0].quantity}' + '${quantity}')
-                //         WHERE od.id = '${productId}'
-                //         AND od.id_order = '${registeredOrder[0].id}'
-                //     `);
-                //     } else {}
-                    // AGREGO PRODUCTO A ORDERS_dETAIL
-                    db.query(`
-                    INSERT INTO order_detail(id_order, id_product, quantity)
-                    VALUES('${registeredOrder[0].id}', '${productId}', ${quantity})
-                `);
-                
-
-                // ACTUALIZO LA FECHA DE MODIFICACION DE ORDER
-                db.query(`
-                    UPDATE orders o 
-                    SET modification_date = '${dateOrder_mod}'
-                    WHERE o.id = ${registeredOrder[0].id}
-                `);
-
-                //ACTUALIZO TOTAL PEDIDO 
-                
-                await totalOrder(registeredOrder[0].id);
+                newDateOrder(dateOrder_mod, orderData[0].id);                
+                await totalOrder(orderData[0].id);
 
                 res.status(201).json(`Se ha agregado el producto al carrito`);
             } else {
-                // CREATE ORDER AND DETAIL ORDER
-                await db.sequelize.query(`
-                    INSERT INTO orders (
-                        id_client,
-                        id_payment_method,
-                        id_order_status,
-                        entry_date,
-                        modification_date,
-                        total_order
-                    )
-                    VALUES(
-                        '${authData.userId}',
-                        '${paymentMethod}',
-                        '${orderStatus}',
-                        '${dateOrder}',
-                        '${dateOrder_mod}',
-                        '${totalPedido}'
-                    )`
-                );
+                // CREA ORDER Y DETAIL_ORDER
 
-                // BUSCO ID DE ORDEN CON STATUS "NUEVA"
-                const newOrder = await db.sequelize.query(`
-                    SELECT * 
-                    FROM orders o
-                    WHERE id_client = ${authData.userId} 
-                    AND id_order_status = "1"`,
-                    {
-                        type: db.Sequelize.QueryTypes.SELECT,
-                        raw: true,
-                        plain: false,
-                        // logging: console.log
-                    }
-                ).then(result => result);
+                await newOrder(authData.userId, paymentMethod, orderStatus, dateOrder, dateOrder_mod);
+                const isOrderFn = await isOrder(authData.userId);
+                addProduct_qty(isOrderFn[0].id, productId, quantity)
+                await totalOrder(isOrderFn[0].id);
 
-                db.query(`
-                    INSERT INTO order_detail(id_order, id_product, quantity) 
-                    VALUES('${newOrder[0].id}', '${productId}', '${quantity}')
-                `);
+                res.status(201).json(`Se ha creado la orden`);
             }
         }
     })
