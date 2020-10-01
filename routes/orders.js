@@ -300,8 +300,7 @@ router.put('/:id' , authenticateUser, async (req, res) => {
         } else {
             const userOrder = await db.query(`SELECT o.id FROM orders o INNER JOIN users u ON o.id_client = u.id 
             WHERE u.id = ${authData.userId} AND o.id_order_status = 1`);
-            
-            console.log(userOrder[0].id);
+            // console.log(userOrder[0].id);
             if ( userOrder[0].length != 0) {
                 db.query(`UPDATE orders o SET id_order_status = 2 , 
                 id_payment_method = ${paymentMethod},
