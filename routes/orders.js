@@ -96,6 +96,13 @@ async function totalOrder(orderId){
 }
 
 //ACTUALIZA EL STOCK DEL PRODUCTO POST PEDIDO
+function updateStockProduct(quantity, productId){
+    db.query(`
+        UPDATE products 
+        SET stock= (stock + ${quantity})
+        WHERE id = ${productId}
+    `);
+}
 
 // CREAR ORDEN NUEVA
 async function newOrder(userId, payment, orderStatus, dateOrder, dateOrder_mod) {
@@ -273,6 +280,7 @@ router.post('/', authenticateUser, async (req, res) => {
 
                 newDateOrder(dateOrder_mod, orderData[0].id);                
                 await totalOrder(orderData[0].id);
+                updateStockProduct(quantity, productId);
 
                 res.status(201).json(`Se ha agregado el producto al carrito`);
             } else {
