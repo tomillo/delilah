@@ -25,21 +25,17 @@ async function signValidator(userName, password){
 router.post('/', async (req, res) => {
     const{userName, password} = req.body;
     const validated = await signValidator(userName, password);
-    const role = validated[0].id_role;
-    const userId = validated[0].id;
 
-    if(validated.length==0){
-        res.json({error: 'Usuario o contraseña incorrecta'})
-    }else {
-
+    if (validated.length != 0){
+        const role = validated[0].id_role;
+        const userId = validated[0].id;
         const token = jwt.sign({
             userName, role, userId    
         }, privateKey);
         res.json({token});
+    } else {
+        res.json({error: 'Usuario o contraseña incorrecta'})
     }
 })
-
-
-
 
 module.exports = router;
