@@ -8,6 +8,25 @@ const privateKey = "112358";
 const db = require("../db/mysql_connection");
 
 //ADMIN para ver todos los usuarios creados.
+
+async function orderDetailDelete(productId) {
+    
+    const ordersDetail = await db.sequelize.query(`SELECT od.id 
+                                                FROM order_detail od  
+                                                INNER JOIN orders o
+                                                ON o.id=od.id_order
+                                                WHERE o.id_order_status = 1 
+                                                AND od.id_product = '${productId}'`,
+        {
+            type: db.Sequelize.QueryTypes.SELECT,
+            raw: true,
+            plain: false,
+            // logging: console.log
+        }
+    ).then(result => (result));
+    return ordersDetail;
+}
+
 router.get('/', (req, res) => {
     
     db.sequelize.query(`SELECT p.product_name, p.description, p.photo, p.price, p.stock, ep.description 
@@ -95,18 +114,22 @@ router.put('/:id' , authenticateUser, (req , res) => {
 
 router.delete('/:id', authenticateUser, (req, res) => {
 
-    jwt.verify(req.token, privateKey, (error, authData) => {
+    jwt.verify(req.token, privateKey, async(error, authData) => {
         if (error) {
             res.status(401).json('Error en verificar el token');
         } else if (authData.role != '3') {
             const idParams = req.params.id;
             // console.log(idParams);
+            const odDelete =  await orderDetailDelete(idParams); 
             const deleteProduct = db.query(`DELETE FROM products
-                    WHERE id='${idParams}'`);
-                    //CORREGIR ESTO PARA QUE SI EL ID_ORDER_STATUS ES = 1 ELIMINAR ESE ID ORDER
-                    // db.query(`DELETE FROM order_detail od 
-                    // INNER JOIN orders o ON o.id = od.id_order 
-                    // WHERE id_product= ${idParams} AND o.id_order_status=1`)
+                                            WHERE id='${idParams}'`);
+            
+            
+            odDelete.forEach(element => {
+                db.query(`DELETE FROM order_detail
+                        WHERE id='${element.id}'`);
+            });
+
             res.json(`El producto fue eliminado correctamente`)
             
         } else {
