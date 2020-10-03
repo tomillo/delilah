@@ -175,7 +175,7 @@ router.put('/:id', contactValidator, authenticateUser, (req, res) =>{
                 
                     res.status(200).json(`El Usuario fue modificado correctamente`);
             } else {
-                res.status(401).json('Su usuario no esta autorizado para ejecutar esta consulta');
+                res.status(401).json('Su usuario no esta autorizado para ejecutar esta acción');
             }
         } else if (authData.role == 1) {
             // console.log(`req.token ${req.token}`)

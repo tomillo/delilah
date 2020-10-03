@@ -27,6 +27,22 @@ async function orderDetailDelete(productId) {
     return ordersDetail;
 }
 
+function authenticateUser(req, res, next) {
+    try {
+        const bearerHeader = req.headers['authorization'];
+        console.log(`bearerheader ${bearerHeader}`)
+        if (typeof bearerHeader !== 'undefined') {
+            const bearerToken = bearerHeader.split(" ")[1];
+            req.token = bearerToken;
+            next();
+        } else {
+            res.status(401).json({error: 'Error en verificar el token'})
+        }
+
+    } catch {
+        res.json({ error: 'Error al validar usuario' })
+    }
+}
 router.get('/', (req, res) => {
     
     db.sequelize.query(`SELECT p.product_name, p.description, p.photo, p.price, p.stock, ep.description 
@@ -57,22 +73,6 @@ router.get('/:id' , (req , res) => {
     ).then(result => res.json(result));
 })
 
-function authenticateUser(req, res, next) {
-    try {
-        const bearerHeader = req.headers['authorization'];
-        console.log(`bearerheader ${bearerHeader}`)
-        if (typeof bearerHeader !== 'undefined') {
-            const bearerToken = bearerHeader.split(" ")[1];
-            req.token = bearerToken;
-            next();
-        } else {
-            res.status(401).json({error: 'Error en verificar el token'})
-        }
-
-    } catch {
-        res.json({ error: 'Error al validar usuario' })
-    }
-}
 router.post('/', authenticateUser, (req, res) => {
     const { product, description, photo, price, stock } = req.body;
     const data = req.body;
@@ -89,6 +89,27 @@ router.post('/', authenticateUser, (req, res) => {
             const addProduct = db.query(`INSERT INTO products(product_name, description, photo, price, stock, entry_date, modification_date, id_status) VALUES('${data.product}', '${data.description}', '${data.photo}', '${data.price}', '${data.stock}', '${entryDate}', '${modificationDate}', '${idStatus}')`);
             res.status(201).json(`Producto agregado correctamente`);
             // console.log(addProduct);
+        }
+    })
+})
+
+router.post('/favorites/:id', authenticateUser, (req, res) => {
+    const idParams = req.params.id;
+
+    jwt.verify(req.token, privateKey, async (error, authData) => {
+        if (error) {
+            res.status(401).json('Error en verificar el token');
+        } else if(authData.role == 3){
+            await db.sequelize.query(`INSERT INTO favorites(
+                                    id_client, 
+                                    id_product
+                                    )
+                                    VALUES(
+                                    '${authData.userId}', 
+                                    '${idParams}'   
+                                    )`);
+        
+        res.status(201).json(`Se ha agregado un producto a favoritos`);
         }
     })
 })
@@ -139,24 +160,4 @@ router.delete('/:id', authenticateUser, (req, res) => {
     })
 })
 
-router.post('/favorites/:id', authenticateUser, (req, res) => {
-    const idParams = req.params.id;
-
-    jwt.verify(req.token, privateKey, async (error, authData) => {
-        if (error) {
-            res.status(401).json('Error en verificar el token');
-        } else if(authData.role == 3){
-            await db.sequelize.query(`INSERT INTO favorites(
-                                    id_client, 
-                                    id_product
-                                    )
-                                    VALUES(
-                                    '${authData.userId}', 
-                                    '${idParams}'   
-                                    )`);
-        
-        res.status(201).json(`Se ha agregado un producto a favoritos`);
-        }
-    })
-})
 module.exports = router;

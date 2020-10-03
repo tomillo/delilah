@@ -74,7 +74,6 @@ function addProduct_qty(orderId, productId, qty) {
         VALUES('${orderId}', '${productId}', ${qty})
     `);
 }
-
 // ACTUALIZA LA FECHA DE MODIFICACION DE ORDER
 function newDateOrder(date, orderId) {
     db.query(`
@@ -83,7 +82,6 @@ function newDateOrder(date, orderId) {
         WHERE o.id = ${orderId}
     `);
 }
-
 // ACTUALIZA TOTAL PEDIDO
 async function totalOrder(orderId){
     db.query(`
@@ -94,7 +92,6 @@ async function totalOrder(orderId){
         WHERE o.id = ${orderId}
     `);
 }
-
 //ACTUALIZA EL STOCK DEL PRODUCTO POST PEDIDO
 async function updateStockProduct(order) {
     const productId = await db.sequelize.query(`SELECT id_product, quantity 
@@ -116,7 +113,6 @@ async function updateStockProduct(order) {
     });
     
 }
-
 // CREAR ORDEN NUEVA
 async function newOrder(userId, payment, orderStatus, dateOrder, dateOrder_mod) {
     await db.sequelize.query(`
@@ -138,7 +134,6 @@ async function newOrder(userId, payment, orderStatus, dateOrder, dateOrder_mod) 
         )`
     );
 }
-
 // BUSCA ID DE ORDEN CON STATUS "NUEVA"
 async function isOrder(userId) {
     const order = await db.sequelize.query(`
@@ -155,7 +150,6 @@ async function isOrder(userId) {
     ).then(result => result);
     return order;
 }
-
 router.get('/', authenticateUser, (req, res) => {
 
     jwt.verify(req.token, privateKey, (error, authData) => {
@@ -209,7 +203,7 @@ router.get('/:id', authenticateUser, (req, res) => {
         } else if (authData.role == 3) {
             if (authData.userId == idParams.id) {
                 db.sequelize.query(`SELECT u.user, u.name, u.last_name, u.phone, u.address, pm.description AS payment_method, 
-                        os.description AS order_status, p.product_name, od.quantity o.total_order
+                        os.description AS order_status, p.product_name, od.quantity, o.total_order
                         FROM users u
                         INNER JOIN orders o ON o.id_client = u.id
                         INNER JOIN payment_methods pm ON pm.id = o.id_payment_method
@@ -321,7 +315,7 @@ router.put('/:id' , authenticateUser, async (req, res) => {
         } else {
             const userOrder = await db.query(`SELECT o.id FROM orders o INNER JOIN users u ON o.id_client = u.id 
             WHERE u.id = ${authData.userId} AND o.id_order_status = 1`);
-            console.log(userOrder[0].id);
+            
             if (userOrder[0].length != 0) {
                 db.query(`UPDATE orders o SET id_order_status = 2 , 
                 id_payment_method = ${paymentMethod},
@@ -358,6 +352,33 @@ router.patch('/:id' , authenticateUser, (req , res) => {
 })
 // el cliente puede modificar el pedido, agregando -->POST y borrando -->DELETE productos de la orden con status nueva
 
+//BORRAR UN PRODUCTO DE UNA ORDEN CON STATUS "NUEVA" CON ROL CLIENTE
+router.delete('/:id', authenticateUser, (req, res) => {
+    const idParams = req.params.id;
+    const modificationDate = moment().format("YYYY-MM-DD");
+    jwt.verify(req.token, privateKey, async (error, authData) => {
+        if (error) {
+            res.status(401).json('Error en verificar el token');
+        } else {
+            const orderDetail = await db.query(`SELECT od.id FROM order_detail od
+                                                INNER JOIN orders o 
+                                                ON o.id = od.id_order
+                                                INNER JOIN users u 
+                                                ON o.id_client = u.id 
+                                                WHERE u.id = ${authData.userId} 
+                                                AND od.id_product = '${idParams}'
+                                                AND o.id_order_status = 1`);
+
+            orderDetail.forEach(element => {
+                db.query(`DELETE FROM order_detail
+                        WHERE id='${element.id}'`);
+            });
+
+            res.json(`El producto fue eliminado del carrito de compras`)
+        }
+    })
+
+})
 module.exports = router;
 
 
