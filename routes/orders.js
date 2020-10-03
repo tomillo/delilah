@@ -96,12 +96,25 @@ async function totalOrder(orderId){
 }
 
 //ACTUALIZA EL STOCK DEL PRODUCTO POST PEDIDO
-function updateStockProduct(quantity, productId){
-    db.query(`
-        UPDATE products 
-        SET stock= (stock + ${quantity})
-        WHERE id = ${productId}
+async function updateStockProduct(order) {
+    const productId = await db.sequelize.query(`SELECT id_product, quantity 
+                                                FROM order_detail
+                                                WHERE id_order = ${order[0].id}`,
+        {
+            type: db.Sequelize.QueryTypes.SELECT,
+            raw: true,
+            plain: false,
+            // logging: console.log
+        }
+    ).then(result => result);
+    console.log(productId);
+    productId.forEach(element => {
+        db.query(`UPDATE products 
+        SET stock= (stock - ${element.quantity})
+        WHERE id = ${element.id_product}
     `);
+    });
+    
 }
 
 // CREAR ORDEN NUEVA
@@ -280,7 +293,7 @@ router.post('/', authenticateUser, async (req, res) => {
 
                 newDateOrder(dateOrder_mod, orderData[0].id);                
                 await totalOrder(orderData[0].id);
-                updateStockProduct(quantity, productId);
+                
 
                 res.status(201).json(`Se ha agregado el producto al carrito`);
             } else {
@@ -308,12 +321,15 @@ router.put('/:id' , authenticateUser, async (req, res) => {
         } else {
             const userOrder = await db.query(`SELECT o.id FROM orders o INNER JOIN users u ON o.id_client = u.id 
             WHERE u.id = ${authData.userId} AND o.id_order_status = 1`);
-            // console.log(userOrder[0].id);
-            if ( userOrder[0].length != 0) {
+            console.log(userOrder[0].id);
+            if (userOrder[0].length != 0) {
                 db.query(`UPDATE orders o SET id_order_status = 2 , 
                 id_payment_method = ${paymentMethod},
                 modification_date = "${modificationDate}"
                 WHERE o.id = ${userOrder[0].id}`)
+
+                updateStockProduct(userOrder);
+
                 res.status(200).json('Se ha confirmado su compra');
             } 
         } 
