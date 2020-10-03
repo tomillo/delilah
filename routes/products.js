@@ -97,6 +97,7 @@ router.put('/:id' , authenticateUser, (req , res) => {
     const { product, description, photo, price, stock, idStatus } = req.body;
     const newData = req.body;
     const modificationDate = moment().format("YYYY-MM-DD");
+    const idParams = req.params.id;
 
     jwt.verify(req.token, privateKey, (error, authData) => {
         if (error) {
@@ -106,7 +107,7 @@ router.put('/:id' , authenticateUser, (req , res) => {
         } else {
             const updateProduct = db.query(`UPDATE products SET product_name = '${newData.product}', description = '${newData.description}',photo = '${newData.photo}',
                         stock = '${newData.stock}', modification_date = '${modificationDate}', id_status= '${newData.idStatus}'
-                        WHERE id='${idParams.id}'`);
+                        WHERE id='${idParams}'`);
         res.json(`El producto fue modificado correctamente y agregado a la DB ${newData.product}`)
         }
     })
@@ -138,4 +139,24 @@ router.delete('/:id', authenticateUser, (req, res) => {
     })
 })
 
+router.post('/favorites/:id', authenticateUser, (req, res) => {
+    const idParams = req.params.id;
+
+    jwt.verify(req.token, privateKey, async (error, authData) => {
+        if (error) {
+            res.status(401).json('Error en verificar el token');
+        } else if(authData.role == 3){
+            await db.sequelize.query(`INSERT INTO favorites(
+                                    id_client, 
+                                    id_product
+                                    )
+                                    VALUES(
+                                    '${authData.userId}', 
+                                    '${idParams}'   
+                                    )`);
+        
+        res.status(201).json(`Se ha agregado un producto a favoritos`);
+        }
+    })
+})
 module.exports = router;
