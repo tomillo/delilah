@@ -60,13 +60,19 @@ router.get('/', authenticateUser, (req, res) => {
         } else if (authData.role != '1') {
             res.status(401).json('No esta autorizado a realizar la consulta');
         } else {
-            // console.log(`req.token ${req.token}`)
-            // console.log(`authData ${authData.permisoUsuario}`)
-
-            db.sequelize.query(`SELECT u.user, u.name, u.last_name, u.email, u.phone, u.address, u.entry_date, e.description, p.name AS role
-                            FROM users u
-                            INNER JOIN user_status e ON u.id_status=e.id
-                            INNER JOIN role p ON p.id=u.id_role`,
+            db.sequelize.query(`
+                SELECT  u.user,
+                        u.name,
+                        u.last_name,
+                        u.email,
+                        u.phone,
+                        u.address,
+                        u.entry_date,
+                        e.description,
+                        p.name AS role
+                FROM users u
+                INNER JOIN user_status e ON u.id_status=e.id
+                INNER JOIN role p ON p.id=u.id_role`,
                 {
                     type: db.Sequelize.QueryTypes.SELECT,
                     raw: true,
@@ -75,9 +81,8 @@ router.get('/', authenticateUser, (req, res) => {
                 }
             ).then(result => res.status(200).json(result));
         }
-
-    })
-})
+    });
+});
 
 router.get('/:id', authenticateUser, (req, res) => {
     jwt.verify(req.token, privateKey, async (error, authData) => {
@@ -90,11 +95,21 @@ router.get('/:id', authenticateUser, (req, res) => {
         } else if (authData.role == 3) {
             //PONER SELECT CON ID DE USUARIO
             if (authData.userId == idParams.id) {
-                db.sequelize.query(`SELECT u.id, u.user, u.name, u.last_name, u.email, u.phone, u.address, u.entry_date, e.description, p.name AS role
-                                    FROM users u
-                                    INNER JOIN user_status e ON u.id_status=e.id
-                                    INNER JOIN role p ON p.id=u.id_role
-                                    WHERE u.id = ${idParams.id}`,
+                db.sequelize.query(`
+                    SELECT  u.id,
+                            u.user,
+                            u.name,
+                            u.last_name,
+                            u.email,
+                            u.phone,
+                            u.address,
+                            u.entry_date,
+                            e.description,
+                            p.name AS role
+                    FROM users u
+                    INNER JOIN user_status e ON u.id_status=e.id
+                    INNER JOIN role p ON p.id=u.id_role
+                    WHERE u.id = ${idParams.id}`,
                     {
                         type: db.Sequelize.QueryTypes.SELECT,
                         raw: true,
@@ -103,11 +118,9 @@ router.get('/:id', authenticateUser, (req, res) => {
                     }
                 ).then(result => res.status(200).json(result));
             } else {
-                res.status(401).json('Su usuario no esta autorizado para ejecutar esta consulta');
+                res.status(401).json('No esta autorizado para ejecutar esta consulta');
             }
         } else {
-            // console.log(`req.token ${req.token}`)
-            // console.log(`authData ${authData.permisoUsuario}`)
             const searchUser = await db.sequelize.query(`
 				SELECT * FROM users WHERE id = '${idParams.id}'`,
 				{
@@ -118,11 +131,21 @@ router.get('/:id', authenticateUser, (req, res) => {
 				}
             );
             if (searchUser.length != 0) {
-                db.sequelize.query(`SELECT u.id, u.user, u.name, u.last_name, u.email, u.phone, u.address, u.entry_date, e.description, p.name AS role
-                                FROM users u
-                                INNER JOIN user_status e ON u.id_status=e.id
-                                INNER JOIN role p ON p.id=u.id_role
-                                WHERE u.id = ${idParams.id}`,
+                db.sequelize.query(`
+                    SELECT  u.id,
+                            u.user,
+                            u.name,
+                            u.last_name,
+                            u.email,
+                            u.phone,
+                            u.address,
+                            u.entry_date,
+                            e.description,
+                            p.name AS role
+                    FROM users u
+                    INNER JOIN user_status e ON u.id_status=e.id
+                    INNER JOIN role p ON p.id=u.id_role
+                    WHERE u.id = ${idParams.id}`,
                     {
                         type: db.Sequelize.QueryTypes.SELECT,
                         raw: true,
@@ -138,16 +161,13 @@ router.get('/:id', authenticateUser, (req, res) => {
     })
 
 })
-//CORREGIR
+
 router.post('/', contactValidator, (req, res) => {
     const data = req.body;
     const entryDate = moment().format("YYYY-MM-DD");
     const modificationDate = moment().format("YYYY-MM-DD");
     const idStatus = "1";
     const idRole = "3";
-
-    // console.log(fechaAlta);
-    // console.log(req.body);
     
     db.query(`
         INSERT INTO users(
@@ -186,26 +206,32 @@ router.put('/:id', contactValidator, authenticateUser, (req, res) =>{
         const newData = req.body;
         const idParams = req.params;
         const modificationDate = moment().format("YYYY-MM-DD");
-        // const role = authData.role;
-        // const userId = authData.userId;
 
         if (error) {
             res.status(401).json('Error en verificar el token');
         } else if (authData.role == 3) {
             //PONER SELECT CON ID DE USUARIO
             if (authData.userId == idParams.id) {
-                const updateUser = db.query(`UPDATE users SET name = '${newData.name}',last_name = '${newData.lastName}', phone = '${newData.phone}',address = '${newData.address}',password = '${newData.password}', modification_date = '${modificationDate}'
-                    WHERE id='${idParams.id}'`);
+                const updateUser = db.query(`
+                    UPDATE users
+                    SET name = '${newData.name}',
+                        last_name = '${newData.lastName}',
+                        phone = '${newData.phone}',
+                        address = '${newData.address}',
+                        password = '${newData.password}',
+                        modification_date = '${modificationDate}'
+                    WHERE id='${idParams.id}'
+                `);
                 
-                    res.status(200).json(`El Usuario fue modificado correctamente`);
+                res.status(200).json(`El Usuario fue modificado correctamente`);
             } else {
                 res.status(401).json('Su usuario no esta autorizado para ejecutar esta acción');
             }
         } else if (authData.role == 1) {
-            // console.log(`req.token ${req.token}`)
-            // console.log(`authData ${authData.permisoUsuario}`)
             const searchUser = await db.sequelize.query(`
-				SELECT * FROM users WHERE id = '${idParams.id}'`,
+                SELECT *
+                FROM users
+                WHERE id = '${idParams.id}'`,
 				{
 					type: db.Sequelize.QueryTypes.SELECT,
 					raw: true,
@@ -214,10 +240,18 @@ router.put('/:id', contactValidator, authenticateUser, (req, res) =>{
 				}
             );
             if (searchUser.length != 0) {
-                const updateUser = db.query(`UPDATE users SET name = '${newData.name}',last_name = '${newData.lastName}',
-                    phone = '${newData.phone}',address = '${newData.address}', password = '${newData.password}',
-                    modification_date = '${modificationDate}', id_role= '${newData.id_role}', id_status = '${newData.id_status}'
-                    WHERE id='${idParams.id}'`);
+                const updateUser = db.query(`
+                    UPDATE users
+                    SET name = '${newData.name}',
+                        last_name = '${newData.lastName}',
+                        phone = '${newData.phone}',
+                        address = '${newData.address}',
+                        password = '${newData.password}',
+                        modification_date = '${modificationDate}',
+                        id_role= '${newData.id_role}',
+                        id_status = '${newData.id_status}'
+                    WHERE id='${idParams.id}'
+                `);
                 
                 res.status(200).json(`El usuario fue modificado correctamente`);
             } else {
