@@ -74,6 +74,7 @@ function addProduct_qty(orderId, productId, qty) {
         VALUES('${orderId}', '${productId}', ${qty})
     `);
 }
+
 // ACTUALIZA LA FECHA DE MODIFICACION DE ORDER
 function newDateOrder(date, orderId) {
     db.query(`
@@ -82,6 +83,7 @@ function newDateOrder(date, orderId) {
         WHERE o.id = ${orderId}
     `);
 }
+
 // ACTUALIZA TOTAL PEDIDO
 async function totalOrder(orderId){
     db.query(`
@@ -92,11 +94,14 @@ async function totalOrder(orderId){
         WHERE o.id = ${orderId}
     `);
 }
+
 //ACTUALIZA EL STOCK DEL PRODUCTO POST PEDIDO
 async function updateStockProduct(order) {
-    const productId = await db.sequelize.query(`SELECT id_product, quantity 
-                                                FROM order_detail
-                                                WHERE id_order = ${order[0].id}`,
+    const productId = await db.sequelize.query(`
+        SELECT  id_product,
+                quantity
+        FROM order_detail
+        WHERE id_order = ${order[0].id}`,
         {
             type: db.Sequelize.QueryTypes.SELECT,
             raw: true,
@@ -106,13 +111,15 @@ async function updateStockProduct(order) {
     ).then(result => result);
     console.log(productId);
     productId.forEach(element => {
-        db.query(`UPDATE products 
-        SET stock= (stock - ${element.quantity})
-        WHERE id = ${element.id_product}
-    `);
+        db.query(`
+            UPDATE products 
+            SET stock = (stock - ${element.quantity})
+            WHERE id = ${element.id_product}
+        `);
     });
     
 }
+
 // CREAR ORDEN NUEVA
 async function newOrder(userId, payment, orderStatus, dateOrder, dateOrder_mod) {
     await db.sequelize.query(`
@@ -134,6 +141,7 @@ async function newOrder(userId, payment, orderStatus, dateOrder, dateOrder_mod) 
         )`
     );
 }
+
 // BUSCA ID DE ORDEN CON STATUS "NUEVA"
 async function isOrder(userId) {
     const order = await db.sequelize.query(`
@@ -150,6 +158,109 @@ async function isOrder(userId) {
     ).then(result => result);
     return order;
 }
+
+// TRAE INFORMACION DE LA ORDEN SI ES CLIENTE
+async function orderInfoByClient(userId, orderId) {
+    const order = await db.sequelize.query(`
+        SELECT
+            u.id,
+            u.user,
+            u.name,
+            u.last_name,
+            u.phone,
+            u.address,
+            pm.description AS payment_method, 
+            os.description AS order_status,
+            p.product_name,
+            od.quantity,
+            o.id AS order_id,
+            o.total_order
+        FROM users u
+        INNER JOIN orders o ON o.id_client = u.id
+        INNER JOIN payment_methods pm ON pm.id = o.id_payment_method
+        INNER JOIN orders_status os ON os.id = o.id_order_status
+        INNER JOIN order_detail od ON od.id_order = o.id
+        INNER JOIN products p ON p.id = od.id_product
+        WHERE u.id = ${userId}
+        AND o.id = ${orderId}`,
+        {
+            type: db.Sequelize.QueryTypes.SELECT,
+            raw: true,
+            plain: false,
+            // logging: console.log
+        }
+    ).then(result => result);
+    return order;
+}
+
+// TRAE INFORMACION DE LA ORDEN SI ES ADMIN
+async function orderInfoByAdmin(userId, orderId) {
+    const order = await db.sequelize.query(`
+        SELECT
+            u.id,
+            u.user,
+            u.name,
+            u.last_name,
+            u.phone,
+            u.address,
+            pm.description AS payment_method, 
+            os.description AS order_status,
+            p.product_name,
+            od.quantity,
+            o.id AS order_id,
+            o.total_order
+        FROM users u
+        INNER JOIN orders o ON o.id_client = u.id
+        INNER JOIN payment_methods pm ON pm.id = o.id_payment_method
+        INNER JOIN orders_status os ON os.id = o.id_order_status
+        INNER JOIN order_detail od ON od.id_order = o.id
+        INNER JOIN products p ON p.id = od.id_product
+        WHERE o.id = ${orderId}`,
+        {
+            type: db.Sequelize.QueryTypes.SELECT,
+            raw: true,
+            plain: false,
+            // logging: console.log
+        }
+    ).then(result => result);
+    return order;
+}
+
+// TRAE INFORMACION DE LA ORDEN SI ES SUPERVISOR
+async function orderInfoBySupervisor(userId, orderId) {
+    const order = await db.sequelize.query(`
+        SELECT
+            u.id,
+            u.user,
+            u.name,
+            u.last_name,
+            u.phone,
+            u.address,
+            pm.description AS payment_method, 
+            os.description AS order_status,
+            p.product_name,
+            od.quantity,
+            o.id AS order_id,
+            o.total_order,
+            o.id_order_status
+        FROM users u
+        INNER JOIN orders o ON o.id_client = u.id
+        INNER JOIN payment_methods pm ON pm.id = o.id_payment_method
+        INNER JOIN orders_status os ON os.id = o.id_order_status
+        INNER JOIN order_detail od ON od.id_order = o.id
+        INNER JOIN products p ON p.id = od.id_product
+        WHERE o.id = ${orderId}
+        AND o.id_order_status != 1`,
+        {
+            type: db.Sequelize.QueryTypes.SELECT,
+            raw: true,
+            plain: false,
+            // logging: console.log
+        }
+    ).then(result => result);
+    return order;
+}
+
 router.get('/', authenticateUser, (req, res) => {
 
     jwt.verify(req.token, privateKey, (error, authData) => {
@@ -195,69 +306,32 @@ router.get('/', authenticateUser, (req, res) => {
 })
 
 router.get('/:id', authenticateUser, (req, res) => {
-
-    jwt.verify(req.token, privateKey, (error, authData) => {
+    jwt.verify(req.token, privateKey, async (error, authData) => {
         const idParams = req.params;
         if (error) {
             res.status(401).json('Error en verificar el token');
         } else if (authData.role == 3) {
-            if (authData.userId == idParams.id) {
-                db.sequelize.query(`SELECT u.user, u.name, u.last_name, u.phone, u.address, pm.description AS payment_method, 
-                        os.description AS order_status, p.product_name, od.quantity, o.total_order
-                        FROM users u
-                        INNER JOIN orders o ON o.id_client = u.id
-                        INNER JOIN payment_methods pm ON pm.id = o.id_payment_method
-                        INNER JOIN orders_status os ON os.id = o.id_order_status
-                        INNER JOIN order_detail od ON od.id_order = o.id
-                        INNER JOIN products p ON p.id = od.id_product
-                        WHERE u.id = ${idParams.id}`,
-                    {
-                        type: db.Sequelize.QueryTypes.SELECT,
-                        raw: true,
-                        plain: false,
-                        // logging: console.log
-                    }
-                ).then(result => res.json(result));
+            const orderInfoFn = await orderInfoByClient(authData.userId, idParams.id);
+            if (orderInfoFn.length != 0 && idParams.id == orderInfoFn[0].order_id) { 
+                    res.status(200).json(orderInfoFn);
             } else {
-
-                res.status(401).json('Su usuario no está autorizado para ver las ordenes de otro usuario');
-
+                res.status(401).json('No está autorizado para ver las ordenes de otro usuario');
             }
         } else if (authData.role == 1) {
-            db.sequelize.query(`SELECT u.user, u.name, u.last_name, u.phone, u.address, pm.description AS payment_method, 
-                        os.description AS order_status, p.product_name, od.quantity o.total_order
-                        FROM users u
-                        INNER JOIN orders o ON o.id_client = u.id
-                        INNER JOIN payment_methods pm ON pm.id = o.id_payment_method
-                        INNER JOIN orders_status os ON os.id = o.id_order_status
-                        INNER JOIN order_detail od ON od.id_order = o.id
-                        INNER JOIN products p ON p.id = od.id_product
-                        WHERE u.id = ${idParams.id}`,
-                {
-                    type: db.Sequelize.QueryTypes.SELECT,
-                    raw: true,
-                    plain: false,
-                    // logging: console.log
-                }
-            ).then(result => res.json(result));
+            const orderInfoFn = await orderInfoByAdmin(authData.userId, idParams.id);
+            if (orderInfoFn.length != 0) { 
+                res.status(200).json(orderInfoFn);
+            } else {
+                res.status(404).json("Esta orden no existe");
+            }
         } else {
-            db.sequelize.query(`SELECT u.user, u.name, u.last_name, u.phone, u.address, pm.description AS payment_method, 
-                        os.description AS order_status, p.product_name, o.total_order
-                        FROM users u
-                        INNER JOIN orders o ON o.id_client = u.id
-                        INNER JOIN payment_methods pm ON pm.id = o.id_payment_method
-                        INNER JOIN orders_status os ON os.id = o.id_order_status
-                        INNER JOIN order_detail od ON od.id_order = o.id
-                        INNER JOIN products p ON p.id = od.id_product
-                        WHERE u.id = ${idParams.id} 
-                        AND o.id_order_status <> '1'`,
-                {
-                    type: db.Sequelize.QueryTypes.SELECT,
-                    raw: true,
-                    plain: false,
-                    // logging: console.log
-                }
-            ).then(result => res.json(result));
+            const orderInfoFn = await orderInfoBySupervisor(authData.userId, idParams.id);
+            console.log(orderInfoFn)
+            if (orderInfoFn.length != 0) { 
+                res.status(200).json(orderInfoFn);
+            } else {
+                res.status(401).json("Sin autorización para ver esta orden");
+            }
         }
     });
 })
