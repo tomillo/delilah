@@ -433,7 +433,7 @@ router.put('/:id' , authenticateUser, async (req, res) => {
 
                 res.status(200).json('Se ha confirmado su compra');
             }  else {
-                res.status(200).json('Esta orden no existe');
+                res.status(404).json('Esta orden no existe');
             }
         } 
     })
