@@ -432,7 +432,9 @@ router.put('/:id' , authenticateUser, async (req, res) => {
                 updateStockProduct(userOrder);
 
                 res.status(200).json('Se ha confirmado su compra');
-            } 
+            }  else {
+                res.status(200).json('Esta orden no existe');
+            }
         } 
     })
 })
