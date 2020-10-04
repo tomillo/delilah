@@ -10,13 +10,11 @@ const db = require("../db/mysql_connection");
 //ADMIN para ver todos los usuarios creados.
 
 async function orderDetailDelete(productId) {
-    
-    const ordersDetail = await db.sequelize.query(`SELECT od.id 
-                                                FROM order_detail od  
-                                                INNER JOIN orders o
-                                                ON o.id=od.id_order
-                                                WHERE o.id_order_status = 1 
-                                                AND od.id_product = '${productId}'`,
+    const ordersDetail = await db.sequelize.query(`
+        SELECT od.id 
+        FROM order_detail od
+        INNER JOIN orders o ON o.id=od.id_order
+        WHERE o.id_order_status = 1 AND od.id_product = '${productId}'`,
         {
             type: db.Sequelize.QueryTypes.SELECT,
             raw: true,
@@ -44,37 +42,54 @@ function authenticateUser(req, res, next) {
     }
 }
 router.get('/', (req, res) => {
-    
-    db.sequelize.query(`SELECT p.product_name, p.description, p.photo, p.price, p.stock, ep.description 
-                            FROM products p
-                            INNER JOIN products_status ep ON p.id_status = ep.id`,
+    db.sequelize.query(`
+        SELECT 
+            p.product_name,
+            p.description,
+            p.photo,
+            p.price,
+            p.stock,
+            ep.description 
+        FROM products p 
+        INNER JOIN products_status ep ON p.id_status = ep.id`,
         {
             type: db.Sequelize.QueryTypes.SELECT,
             raw: true,
             plain: false,
             logging: console.log
         }
-    ).then(result => res.json(result));
+    ).then(result => res.status(200).json(result));
 })
 
-router.get('/:id' , (req , res) => {
-
+router.get('/:id', async (req , res) => {
     const idParams = req.params.id;
-    db.sequelize.query(`SELECT p.product_name, p.description, p.photo, p.price, p.stock, ep.description 
-                        FROM products p
-                        INNER JOIN products_status ep ON p.id_status = ep.id
-                        WHERE p.id = ${idParams}`,
+    const product = await db.sequelize.query(`
+        SELECT 
+            p.product_name,
+            p.description,
+            p.photo,
+            p.price,
+            p.stock,
+            ep.description 
+        FROM products p
+        INNER JOIN products_status ep ON p.id_status = ep.id
+        WHERE p.id = ${idParams}`,
         {
             type: db.Sequelize.QueryTypes.SELECT,
             raw: true,
             plain: false,
             logging: console.log
         }
-    ).then(result => res.json(result));
+    ).then(result => result);
+
+    if (product.length != 0) {
+        res.status(200).json(product);
+    } else {
+        res.status(404).json("Producto no encontrado");
+    }
 })
 
 router.post('/', authenticateUser, (req, res) => {
-    const { product, description, photo, price, stock } = req.body;
     const data = req.body;
     const idStatus = "1";
     const entryDate = moment().format("YYYY-MM-DD");
@@ -86,36 +101,34 @@ router.post('/', authenticateUser, (req, res) => {
         } else if (authData.role != '1') {
             res.status(401).json('No esta autorizado a crear un producto');
         } else {
-            const addProduct = db.query(`INSERT INTO products(product_name, description, photo, price, stock, entry_date, modification_date, id_status) VALUES('${data.product}', '${data.description}', '${data.photo}', '${data.price}', '${data.stock}', '${entryDate}', '${modificationDate}', '${idStatus}')`);
+            db.query(`
+                INSERT INTO products(
+                    product_name,
+                    description,
+                    photo,
+                    price,
+                    stock,
+                    entry_date,
+                    modification_date,
+                    id_status
+                )
+                VALUES(
+                    '${data.product}',
+                    '${data.description}',
+                    '${data.photo}',
+                    '${data.price}',
+                    '${data.stock}',
+                    '${entryDate}',
+                    '${modificationDate}',
+                    '${idStatus}'
+                )
+            `);
             res.status(201).json(`Producto agregado correctamente`);
-            // console.log(addProduct);
-        }
-    })
-})
-
-router.post('/favorites/:id', authenticateUser, (req, res) => {
-    const idParams = req.params.id;
-
-    jwt.verify(req.token, privateKey, async (error, authData) => {
-        if (error) {
-            res.status(401).json('Error en verificar el token');
-        } else if(authData.role == 3){
-            await db.sequelize.query(`INSERT INTO favorites(
-                                    id_client, 
-                                    id_product
-                                    )
-                                    VALUES(
-                                    '${authData.userId}', 
-                                    '${idParams}'   
-                                    )`);
-        
-        res.status(201).json(`Se ha agregado un producto a favoritos`);
         }
     })
 })
 
 router.put('/:id' , authenticateUser, (req , res) => {
-    const { product, description, photo, price, stock, idStatus } = req.body;
     const newData = req.body;
     const modificationDate = moment().format("YYYY-MM-DD");
     const idParams = req.params.id;
@@ -126,36 +139,64 @@ router.put('/:id' , authenticateUser, (req , res) => {
         } else if (authData.role != '1') {
             res.status(401).json('No esta autorizado a crear un producto');
         } else {
-            const updateProduct = db.query(`UPDATE products SET product_name = '${newData.product}', description = '${newData.description}',photo = '${newData.photo}',
-                        stock = '${newData.stock}', modification_date = '${modificationDate}', id_status= '${newData.idStatus}'
-                        WHERE id='${idParams}'`);
-        res.json(`El producto fue modificado correctamente y agregado a la DB ${newData.product}`)
+            db.query(`
+                UPDATE products
+                SET product_name = '${newData.product}',
+                    description = '${newData.description}',
+                    photo = '${newData.photo}',
+                    stock = '${newData.stock}',
+                    modification_date = '${modificationDate}',
+                    id_status= '${newData.idStatus}'
+                WHERE id='${idParams}'
+            `);
+            res.status(200).json(`El producto fue modificado correctamente`)
         }
     })
 })
 
 router.delete('/:id', authenticateUser, (req, res) => {
-
-    jwt.verify(req.token, privateKey, async(error, authData) => {
+    jwt.verify(req.token, privateKey, async (error, authData) => {
         if (error) {
             res.status(401).json('Error en verificar el token');
         } else if (authData.role != '3') {
             const idParams = req.params.id;
-            // console.log(idParams);
             const odDelete =  await orderDetailDelete(idParams); 
-            const deleteProduct = db.query(`DELETE FROM products
-                                            WHERE id='${idParams}'`);
-            
-            
+            db.query(`
+                DELETE FROM products
+                WHERE id='${idParams}'
+            `);
             odDelete.forEach(element => {
-                db.query(`DELETE FROM order_detail
-                        WHERE id='${element.id}'`);
+                db.query(`
+                    DELETE FROM order_detail
+                    WHERE id='${element.id}'
+                `);
             });
 
-            res.json(`El producto fue eliminado correctamente`)
-            
+            res.status(200).json(`El producto fue eliminado correctamente`)
         } else {
-            res.status(401).json('No esta autorizado a realizar esta accion');
+            res.status(401).json('No esta autorizado a realizar esta acción');
+        }
+    })
+})
+
+router.post('/favorites/:id', authenticateUser, (req, res) => {
+    const idParams = req.params.id;
+
+    jwt.verify(req.token, privateKey, async (error, authData) => {
+        if (error) {
+            res.status(401).json('Error en verificar el token');
+        } else {
+            await db.sequelize.query(`
+                INSERT INTO favorites(
+                    id_client, 
+                    id_product
+                )
+                VALUES(
+                    '${authData.userId}', 
+                    '${idParams}'   
+                )
+            `);
+            res.status(201).json(`Se ha agregado el producto a favoritos`);
         }
     })
 })

@@ -32,9 +32,9 @@ router.post('/', async (req, res) => {
         const token = jwt.sign({
             userName, role, userId    
         }, privateKey);
-        res.json({token});
+        res.status(200).json({token});
     } else {
-        res.json({error: 'Usuario o contraseña incorrecta'})
+        res.status(400).json({error: 'Usuario o contraseña incorrecta'})
     }
 })
 

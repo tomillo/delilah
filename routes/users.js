@@ -73,7 +73,7 @@ router.get('/', authenticateUser, (req, res) => {
                     plain: false,
                     logging: console.log
                 }
-            ).then(result => res.json(result));
+            ).then(result => res.status(200).json(result));
         }
 
     })
@@ -101,7 +101,7 @@ router.get('/:id', authenticateUser, (req, res) => {
                         plain: false,
                         logging: console.log
                     }
-                ).then(result => res.json(result));
+                ).then(result => res.status(200).json(result));
             } else {
                 res.status(401).json('Su usuario no esta autorizado para ejecutar esta consulta');
             }
@@ -129,9 +129,9 @@ router.get('/:id', authenticateUser, (req, res) => {
                         plain: false,
                         logging: console.log
                     }
-                ).then(result => res.json(result));
+                ).then(result => res.status(200).json(result));
             } else {
-				res.status(500).json('Usuario no encontrado');
+				res.status(404).json('Usuario no encontrado');
 			}
 
         }
@@ -149,10 +149,34 @@ router.post('/', contactValidator, (req, res) => {
     // console.log(fechaAlta);
     // console.log(req.body);
     
-    const addUser = db.query(`INSERT INTO users(user, name, last_name, email, phone, address, password, entry_date, modification_date, id_status, id_role) VALUES('${data.user}', '${data.name}', '${data.lastName}', '${data.email}', '${data.phone}', '${data.address}', '${data.password}', '${entryDate}', '${modificationDate}', '${idStatus}', '${idRole}')`);
-    res.json(`Usuario ingresado correctamente y agregado a la DB ${data.user}`);
-
-    
+    db.query(`
+        INSERT INTO users(
+            user,
+            name,
+            last_name,
+            email,
+            phone,
+            address,
+            password,
+            entry_date,
+            modification_date,
+            id_status,
+            id_role
+        ) VALUES(
+            '${data.user}',
+            '${data.name}',
+            '${data.lastName}',
+            '${data.email}',
+            '${data.phone}',
+            '${data.address}',
+            '${data.password}',
+            '${entryDate}',
+            '${modificationDate}',
+            '${idStatus}',
+            '${idRole}'
+        )
+    `);
+    res.status(201).json(`Usuario ingresado correctamente y agregado a la DB ${data.user}`);
 })
 
 // administrador puede editar todo
@@ -205,6 +229,4 @@ router.put('/:id', contactValidator, authenticateUser, (req, res) =>{
     })
 })
 
-
-
-  module.exports = router;
+module.exports = router;

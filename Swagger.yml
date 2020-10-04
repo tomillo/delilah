@@ -257,8 +257,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/products'
-        "500":
-          description: Producto no encontrada
+        "404":
+          description: Producto no encontrado
     put:
       tags:
       - admin
@@ -290,6 +290,31 @@ paths:
           description: El producto indicado no existe.
       security:
       - jwtAuth: []
+    delete:
+      tags:
+      - admin
+      summary: Eliminar un producto especifico
+      description: Eliminar un producto creado en la base de datos
+      parameters:
+      - name: id
+        in: path
+        description: Id del producto
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+          example: 1234
+      responses:
+        "200":
+          description: Producto eliminado
+        "401":
+          description: Error al verificar el token
+        "404":
+          description: El producto indicado no existe.
+      security:
+      - jwtAuth: []  
   /orders:
     get:
       tags:
