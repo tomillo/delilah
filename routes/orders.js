@@ -424,11 +424,13 @@ router.put('/:id' , authenticateUser, async (req, res) => {
             WHERE u.id = ${authData.userId} AND o.id_order_status = 1`);
             
             if (userOrder[0].length != 0) {
-                db.query(`UPDATE orders o SET id_order_status = 2 , 
-                id_payment_method = ${paymentMethod},
-                modification_date = "${modificationDate}"
-                WHERE o.id = ${userOrder[0].id}`)
-
+                db.query(`
+                    UPDATE orders o
+                    SET id_order_status = 2,
+                        id_payment_method = ${paymentMethod},
+                        modification_date = "${modificationDate}"
+                    WHERE o.id = ${userOrder[0].id}
+                `)
                 updateStockProduct(userOrder);
 
                 res.status(200).json('Se ha confirmado su compra');
@@ -451,11 +453,13 @@ router.patch('/:id' , authenticateUser, (req , res) => {
         } else if (authData.role == 3) {
             res.status(401).json('No esta autorizado a realizar esta accion');
         } else {
-            db.query(`UPDATE orders SET 
-                        id_order_status = ${status}, 
-                        modification_date = '${modificationDate}' 
-                        WHERE id=${idParams.id}`);
-        res.json(`Has cambiado la orden '${idParams.id}' a '${status}' exitosamente`)
+            db.query(`
+                UPDATE orders
+                SET id_order_status = ${status},
+                    modification_date = '${modificationDate}'
+                WHERE id=${idParams.id}
+            `);
+            res.status(200).json(`Has cambiado la orden '${idParams.id}' a '${status}' exitosamente`)
         }
     })
 })
@@ -469,25 +473,27 @@ router.delete('/:id', authenticateUser, (req, res) => {
         if (error) {
             res.status(401).json('Error en verificar el token');
         } else {
-            const orderDetail = await db.query(`SELECT od.id FROM order_detail od
-                                                INNER JOIN orders o 
-                                                ON o.id = od.id_order
-                                                INNER JOIN users u 
-                                                ON o.id_client = u.id 
-                                                WHERE u.id = ${authData.userId} 
-                                                AND od.id_product = '${idParams}'
-                                                AND o.id_order_status = 1`);
+            const orderDetail = await db.query(`
+                SELECT od.id
+                FROM order_detail od
+                INNER JOIN orders o ON o.id = od.id_order
+                INNER JOIN users u ON o.id_client = u.id
+                WHERE u.id = ${authData.userId}
+                AND od.id_product = '${idParams}'
+                AND o.id_order_status = 1
+            `);
 
             orderDetail.forEach(element => {
-                db.query(`DELETE FROM order_detail
-                        WHERE id='${element.id}'`);
+                db.query(`
+                    DELETE FROM order_detail
+                    WHERE id='${element.id}'
+                `);
             });
 
-            res.json(`El producto fue eliminado del carrito de compras`)
+            res.status(200).json(`El producto fue eliminado del carrito de compras`)
         }
-    })
-
-})
+    });
+});
 module.exports = router;
 
 
