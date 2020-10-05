@@ -232,16 +232,12 @@ async function orderInfoByClient(userId, orderId) {
             u.address,
             pm.description AS payment_method, 
             os.description AS order_status,
-            p.product_name,
-            od.quantity,
             o.id AS order_id,
             o.total_order
         FROM users u
         INNER JOIN orders o ON o.id_client = u.id
         INNER JOIN payment_methods pm ON pm.id = o.id_payment_method
         INNER JOIN orders_status os ON os.id = o.id_order_status
-        INNER JOIN order_detail od ON od.id_order = o.id
-        INNER JOIN products p ON p.id = od.id_product
         WHERE u.id = ${userId}
         AND o.id = ${orderId}`,
         {
@@ -266,16 +262,12 @@ async function orderInfoByAdmin(orderId) {
             u.address,
             pm.description AS payment_method, 
             os.description AS order_status,
-            p.product_name,
-            od.quantity,
             o.id AS order_id,
             o.total_order
         FROM users u
         INNER JOIN orders o ON o.id_client = u.id
         INNER JOIN payment_methods pm ON pm.id = o.id_payment_method
         INNER JOIN orders_status os ON os.id = o.id_order_status
-        INNER JOIN order_detail od ON od.id_order = o.id
-        INNER JOIN products p ON p.id = od.id_product
         WHERE o.id = ${orderId}`,
         {
             type: db.Sequelize.QueryTypes.SELECT,
@@ -299,8 +291,6 @@ async function orderInfoBySupervisor(orderId) {
             u.address,
             pm.description AS payment_method, 
             os.description AS order_status,
-            p.product_name,
-            od.quantity,
             o.id AS order_id,
             o.total_order,
             o.id_order_status
@@ -308,10 +298,32 @@ async function orderInfoBySupervisor(orderId) {
         INNER JOIN orders o ON o.id_client = u.id
         INNER JOIN payment_methods pm ON pm.id = o.id_payment_method
         INNER JOIN orders_status os ON os.id = o.id_order_status
-        INNER JOIN order_detail od ON od.id_order = o.id
-        INNER JOIN products p ON p.id = od.id_product
         WHERE o.id = ${orderId}
         AND o.id_order_status != 1`,
+        {
+            type: db.Sequelize.QueryTypes.SELECT,
+            raw: true,
+            plain: false,
+            // logging: console.log
+        }
+    ).then(result => result);
+    return order;
+}
+
+// TRAE INFORMACION DE LOS PRODUCTOS AGREGADOS A LA ORDEN
+async function orderProducts(orderId) {
+    const order = await db.sequelize.query(`
+        SELECT
+            od.id,
+            od.id_product,
+            p.product_name,
+            od.quantity
+        FROM users u
+        INNER JOIN orders o ON o.id_client = u.id
+        INNER JOIN orders_status os ON os.id = o.id_order_status
+        INNER JOIN order_detail od ON od.id_order = o.id
+        INNER JOIN products p ON p.id = od.id_product
+        WHERE o.id = ${orderId}`,
         {
             type: db.Sequelize.QueryTypes.SELECT,
             raw: true,
@@ -347,13 +359,17 @@ router.get('/:id', authenticateUser, (req, res) => {
         } else if (authData.role == 3) {
             const orderInfoFn = await orderInfoByClient(authData.userId, idParams.id);
             if (orderInfoFn.length != 0 && idParams.id == orderInfoFn[0].order_id) { 
+                    const orderProductsFn = await orderProducts(idParams.id);
+                    orderInfoFn[0].order_detail = orderProductsFn;
                     res.status(200).json(orderInfoFn);
             } else {
                 res.status(401).json('No está autorizado para ver las ordenes de otro usuario');
             }
         } else if (authData.role == 1) {
             const orderInfoFn = await orderInfoByAdmin(idParams.id);
-            if (orderInfoFn.length != 0) { 
+            if (orderInfoFn.length != 0) {
+                const orderProductsFn = await orderProducts(idParams.id);
+                orderInfoFn[0].order_detail = orderProductsFn;
                 res.status(200).json(orderInfoFn);
             } else {
                 res.status(404).json("Esta orden no existe");
@@ -361,6 +377,8 @@ router.get('/:id', authenticateUser, (req, res) => {
         } else {
             const orderInfoFn = await orderInfoBySupervisor(idParams.id);
             if (orderInfoFn.length != 0) { 
+                const orderProductsFn = await orderProducts(idParams.id);
+                orderInfoFn[0].order_detail = orderProductsFn;
                 res.status(200).json(orderInfoFn);
             } else {
                 res.status(401).json("Sin autorización para ver esta orden");
