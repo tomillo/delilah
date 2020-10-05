@@ -107,6 +107,28 @@ async function productExist(producId){
     return user;
 }
 
+// async function favoriteId(userId, productId){
+//     const favorite = db.sequelize.query(`
+//     SELECT id
+//     FROM favorites
+//     WHERE id_client = '${userId}'
+//     AND id_product = '${productId}'`,
+//     {
+//         type: db.Sequelize.QueryTypes.SELECT,
+//         raw: true,
+//         plain: false,
+//         logging: console.log
+//     }
+// ).then(result => (result));
+// return favorite; 
+// }
+
+async function favoritesDelete(favoriteId){
+    const favorite = db.query(`DELETE FROM favorites
+                                WHERE id = '${favoriteId}'`)
+    return favorite
+
+}
 router.get('/', (req, res) => {
     db.sequelize.query(`
         SELECT 
@@ -225,25 +247,34 @@ router.put('/:id' , authenticateUser, (req , res) => {
     })
 })
 
+//ELIMINAR PRODUCTO
 router.delete('/:id', authenticateUser, (req, res) => {
     jwt.verify(req.token, privateKey, async (error, authData) => {
         if (error) {
             res.status(401).json('Error en verificar el token');
         } else if (authData.role != '3') {
-            const idParams = req.params.id;
-            const odDelete =  await orderDetailDelete(idParams); 
-            db.query(`
-                DELETE FROM products
-                WHERE id='${idParams}'
-            `);
-            odDelete.forEach(element => {
-                db.query(`
-                    DELETE FROM order_detail
-                    WHERE id='${element.id}'
-                `);
-            });
 
-            res.status(200).json(`El producto fue eliminado correctamente`)
+            const idParams = req.params.id;
+            const product = await productExist(idParams);
+            console.log(product.length);
+            if (product.length != 0) {
+                const odDelete = await orderDetailDelete(idParams);
+                console.log(odDelete);
+                db.query(`
+                    DELETE FROM products
+                    WHERE id='${idParams}'
+                `);
+                odDelete.forEach(element => {
+                    db.query(`
+                        DELETE FROM order_detail
+                        WHERE id='${element.id}'
+                    `);
+                });
+
+                res.status(200).json(`El producto fue eliminado correctamente`);
+            } else {
+                res.status(404).json(`El producto indicado no existe`);
+            }
         } else {
             res.status(401).json('No esta autorizado a realizar esta acción');
         }
@@ -303,7 +334,7 @@ router.get('/favorites/:id', authenticateUser, (req, res) => {
         } else if (authData.role == '3') {
             if (authData.userId == idParams) {
                 const favoritesInfoFn = await favoritesInfo(authData.userId);
-                if (favoritesInfoFn.lenght != 0) {
+                if (favoritesInfoFn.length != 0) {
                     res.status(200).json(favoritesInfoFn);
                 } else {
                     res.status(404).json('Aun no tienes cargado favoritos');
@@ -315,18 +346,56 @@ router.get('/favorites/:id', authenticateUser, (req, res) => {
         } else {
             const userExistFn = await userExist(idParams);
             const favoritesInfoFn = await favoritesInfo(idParams);
-            if (userExistFn.lenght != 0) {
-                if (favoritesInfoFn.lenght != 0) {
-
-                    res.status(200).json(favoritesInfoFn);
-                } else {
-                    res.status(404).json('El usuario indicado no tiene cargado favoritos');
+            if (userExistFn.length != 0) {
+                if(favoritesInfoFn.length != 0){
+                res.status(200).json(favoritesInfoFn);
+                }else{
+                    res.status(404).json('El usuario indicado no tiene favoritos');
                 }
             } else {
                 res.status(404).json('El usuario indicado no existe');
             }
+        }
+    })
+})
 
+router.delete('/favorites/:id', authenticateUser, (req, res) => {
+    const idParams = req.params.id;
+    const favoriteDelete = req.body.favoriteDelete;
+   
+    jwt.verify(req.token, privateKey, async (error, authData) => {
+        if (error) {
+            res.status(401).json('Error en verificar el token');
+        } else if (authData.role == '3') {
+            if (authData.userId == idParams) {
+                const favoritesInfoFn = await isFavorites(favoriteDelete, authData.userId);
+                
+                if (favoritesInfoFn.length != 0) {
+                    await favoritesDelete(favoritesInfoFn[0].id);
+                    
+                    res.status(200).json('Favorito eliminado');
+                } else {
+                    res.status(404).json('El producto indicado no es un favorito');
+                }
+            } else {
+                res.status(401).json('No está autorizado para realizar esta acción');
+            }
 
+        } else {
+            const favoritesInfoFn = await isFavorites(favoriteDelete, idParams);
+            const userExistFn = await userExist(idParams);
+            
+            if (userExistFn.length != 0) {
+                if (favoritesInfoFn.length != 0) {
+
+                    await favoritesDelete(favoritesInfoFn[0].id);
+                    res.status(200).json('Favorito eliminado');
+                } else {
+                    res.status(404).json('El usuario indicado no tiene el producto indicado como favorito');
+                }
+            } else {
+                res.status(404).json('El usuario indicado no existe');
+            }
         }
     })
 })
