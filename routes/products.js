@@ -79,9 +79,9 @@ async function favoritesInfo(userId) {
 
 async function userExist(userId){
     const user = db.sequelize.query(`
-    SELECT user
-    FROM users
-    WHERE id = '${userId}'`,
+        SELECT user
+        FROM users
+        WHERE id = '${userId}'`,
         {
             type: db.Sequelize.QueryTypes.SELECT,
             raw: true,
@@ -91,6 +91,22 @@ async function userExist(userId){
     ).then(result => (result));
     return user;
 }
+
+async function productExist(producId){
+    const user = db.sequelize.query(`
+        SELECT *
+        FROM products
+        WHERE id = '${producId}'`,
+        {
+            type: db.Sequelize.QueryTypes.SELECT,
+            raw: true,
+            plain: false,
+            logging: console.log
+        }
+    ).then(result => (result));
+    return user;
+}
+
 router.get('/', (req, res) => {
     db.sequelize.query(`
         SELECT 
@@ -183,23 +199,28 @@ router.put('/:id' , authenticateUser, (req , res) => {
     const modificationDate = moment().format("YYYY-MM-DD");
     const idParams = req.params.id;
 
-    jwt.verify(req.token, privateKey, (error, authData) => {
+    jwt.verify(req.token, privateKey, async (error, authData) => {
         if (error) {
             res.status(401).json('Error en verificar el token');
         } else if (authData.role != '1') {
             res.status(401).json('No esta autorizado a crear un producto');
         } else {
-            db.query(`
-                UPDATE products
-                SET product_name = '${newData.product}',
-                    description = '${newData.description}',
-                    photo = '${newData.photo}',
-                    stock = '${newData.stock}',
-                    modification_date = '${modificationDate}',
-                    id_status= '${newData.idStatus}'
-                WHERE id='${idParams}'
-            `);
-            res.status(200).json(`El producto fue modificado correctamente`)
+            const productExistFn = await productExist(idParams);
+            if (productExistFn.length != 0) {
+                db.query(`
+                    UPDATE products
+                    SET product_name = '${newData.product}',
+                        description = '${newData.description}',
+                        photo = '${newData.photo}',
+                        stock = '${newData.stock}',
+                        modification_date = '${modificationDate}',
+                        id_status= '${newData.idStatus}'
+                    WHERE id='${idParams}'
+                `);
+                res.status(200).json(`El producto fue modificado correctamente`);
+            } else {
+                res.status(404).json(`El producto indicado no existe`);
+            }
         }
     })
 })
