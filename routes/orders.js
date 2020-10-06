@@ -163,6 +163,7 @@ async function isOrder(userId) {
 async function ordersInfo() {
     const order = await db.sequelize.query(`
         SELECT 
+            o.id,
             u.user,
             u.name,
             u.last_name,
@@ -170,15 +171,11 @@ async function ordersInfo() {
             u.address,
             pm.description AS payment_method, 
             os.description AS order_status,
-            p.product_name,
-            od.quantity,
             o.total_order
         FROM users u
         INNER JOIN orders o ON o.id_client = u.id
         INNER JOIN payment_methods pm ON pm.id = o.id_payment_method
-        INNER JOIN orders_status os ON os.id = o.id_order_status
-        INNER JOIN order_detail od ON od.id_order = o.id
-        INNER JOIN products p ON p.id = od.id_product`,
+        INNER JOIN orders_status os ON os.id = o.id_order_status`,
         {
             type: db.Sequelize.QueryTypes.SELECT,
             raw: true,
@@ -323,8 +320,7 @@ async function orderProducts(orderId) {
         INNER JOIN orders_status os ON os.id = o.id_order_status
         INNER JOIN order_detail od ON od.id_order = o.id
         INNER JOIN products p ON p.id = od.id_product
-        WHERE o.id = ${orderId}`,
-        {
+        WHERE o.id = ${orderId}`,{
             type: db.Sequelize.QueryTypes.SELECT,
             raw: true,
             plain: false,
@@ -334,22 +330,66 @@ async function orderProducts(orderId) {
     return order;
 }
 
-router.get('/', authenticateUser, (req, res) => {
-
+router.get('/', authenticateUser, async (req, res) => {
     jwt.verify(req.token, privateKey, async (error, authData) => {
         if (error) {
             res.status(401).json('Error en verificar el token');
         } else if (authData.role == '3') {
             res.status(401).json('No esta autorizado a realizar la consulta');
         } else if (authData.role == '1') {
-            const ordersInfoFn = await ordersInfo();
-            res.status(200).json(ordersInfoFn);
+            let ordersInfoFn = await ordersInfo();
+
+            ordersInfoFn.forEach(async (order) => {
+                order.order_detail = [];
+                const orderProductsFn = await orderProducts(order.id);
+
+                orderProductsFn.forEach((products) => {
+                    order.order_detail.push(products);
+                });
+            });
+            setTimeout(() => {
+                res.status(200).json(ordersInfoFn);
+            }, 100);
         } else {
             const ordersInfoFn = await ordersInfobySupervisor();
             res.status(200).json(ordersInfoFn);
         }
     });
-})
+});
+
+// router.get('/', authenticateUser, (req, res) => {
+//     jwt.verify(req.token, privateKey, async (error, authData) => {
+//         const newOrderInfoFn = [];
+//         if (error) {
+//             res.status(401).json('Error en verificar el token');
+//         } else if (authData.role == '3') {
+//             res.status(401).json('No esta autorizado a realizar la consulta');
+//         } else if (authData.role == '1') {
+//             ordersInfo().then(ordersInfoFn => {
+
+
+//                 ordersInfoFn.forEach((order) => {
+//                     // console.log(order);
+//                     order.order_detail = [];
+//                     orderProducts(order.id).then(orderProductsFn => {
+//                         // console.log(orderProductsFn);
+//                         orderProductsFn.forEach((products) => {
+//                             order.order_detail.push(products);
+//                         });
+//                         // console.log(order);
+//                         newOrderInfoFn.push(order)
+//                     });
+//                 });
+//                 // console.log(newOrderInfoFn);
+//                 res.status(200).json(newOrderInfoFn);
+//             });
+//         } else {
+//             ordersInfobySupervisor().then(ordersInfoFn => {
+//                 res.status(200).json(ordersInfoFn);
+//             });
+//         }
+//     });
+// })
 
 router.get('/:id', authenticateUser, (req, res) => {
     jwt.verify(req.token, privateKey, async (error, authData) => {
