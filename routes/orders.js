@@ -347,9 +347,9 @@ router.get('/', authenticateUser, async (req, res) => {
                     order.order_detail.push(products);
                 });
             });
-            // setTimeout(() => {
+            setTimeout(() => {
                 res.status(200).json(ordersInfoFn);
-            // }, 100);
+            }, 100);
         } else {
             const ordersInfoFn = await ordersInfobySupervisor();
             res.status(200).json(ordersInfoFn);
@@ -365,9 +365,9 @@ router.get('/:id', authenticateUser, (req, res) => {
         } else if (authData.role == 3) {
             const orderInfoFn = await orderInfoByClient(authData.userId, idParams.id);
             if (orderInfoFn.length != 0 && idParams.id == orderInfoFn[0].order_id) { 
-                    const orderProductsFn = await orderProducts(idParams.id);
-                    orderInfoFn[0].order_detail = orderProductsFn;
-                    res.status(200).json(orderInfoFn);
+                const orderProductsFn = await orderProducts(idParams.id);
+                orderInfoFn[0].order_detail = orderProductsFn;
+                res.status(200).json(orderInfoFn);
             } else {
                 res.status(401).json('No está autorizado para ver las ordenes de otro usuario');
             }
