@@ -104,3 +104,7 @@ dist
 .tern-port
 DB/config.js
 DB/config.js
+DB/mysql_connection.js
+DB/configdb.js
+.DS_Store
+DB/mysql_connection.js

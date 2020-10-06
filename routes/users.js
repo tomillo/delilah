@@ -201,7 +201,7 @@ router.post('/', contactValidator, (req, res) => {
 
 // administrador puede editar todo
 // cliente name, lastName, phone, address, password
-router.put('/:id', contactValidator, authenticateUser, (req, res) =>{
+router.put('/:id', authenticateUser, (req, res) =>{
     jwt.verify(req.token, privateKey, async (error, authData) => {
         const newData = req.body;
         const idParams = req.params;
