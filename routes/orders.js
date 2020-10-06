@@ -339,57 +339,23 @@ router.get('/', authenticateUser, async (req, res) => {
         } else if (authData.role == '1') {
             let ordersInfoFn = await ordersInfo();
 
-            ordersInfoFn.forEach(async (order) => {
+            ordersInfoFn.map(async (order) => {
                 order.order_detail = [];
                 const orderProductsFn = await orderProducts(order.id);
 
-                orderProductsFn.forEach((products) => {
+                orderProductsFn.map((products) => {
                     order.order_detail.push(products);
                 });
             });
-            setTimeout(() => {
+            // setTimeout(() => {
                 res.status(200).json(ordersInfoFn);
-            }, 100);
+            // }, 100);
         } else {
             const ordersInfoFn = await ordersInfobySupervisor();
             res.status(200).json(ordersInfoFn);
         }
     });
 });
-
-// router.get('/', authenticateUser, (req, res) => {
-//     jwt.verify(req.token, privateKey, async (error, authData) => {
-//         const newOrderInfoFn = [];
-//         if (error) {
-//             res.status(401).json('Error en verificar el token');
-//         } else if (authData.role == '3') {
-//             res.status(401).json('No esta autorizado a realizar la consulta');
-//         } else if (authData.role == '1') {
-//             ordersInfo().then(ordersInfoFn => {
-
-
-//                 ordersInfoFn.forEach((order) => {
-//                     // console.log(order);
-//                     order.order_detail = [];
-//                     orderProducts(order.id).then(orderProductsFn => {
-//                         // console.log(orderProductsFn);
-//                         orderProductsFn.forEach((products) => {
-//                             order.order_detail.push(products);
-//                         });
-//                         // console.log(order);
-//                         newOrderInfoFn.push(order)
-//                     });
-//                 });
-//                 // console.log(newOrderInfoFn);
-//                 res.status(200).json(newOrderInfoFn);
-//             });
-//         } else {
-//             ordersInfobySupervisor().then(ordersInfoFn => {
-//                 res.status(200).json(ordersInfoFn);
-//             });
-//         }
-//     });
-// })
 
 router.get('/:id', authenticateUser, (req, res) => {
     jwt.verify(req.token, privateKey, async (error, authData) => {
