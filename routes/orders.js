@@ -101,7 +101,7 @@ async function updateStockProduct(order) {
         SELECT  id_product,
                 quantity
         FROM order_detail
-        WHERE id_order = ${order[0].id}`,
+        WHERE id_order = ${order}`,
         {
             type: db.Sequelize.QueryTypes.SELECT,
             raw: true,
@@ -471,7 +471,7 @@ router.post('/', authenticateUser, async (req, res) => {
 
 //ENDPOINT PARA CAMBIAR ESTADO DE UNA ORDEN CON ROL CLIENTE
 router.put('/:id' , authenticateUser, async (req, res) => {
-    const idParams = req.params;
+    const idParams = req.params.id;
     const { paymentMethod} = req.body;
     const modificationDate = moment().format("YYYY-MM-DD");
     jwt.verify(req.token, privateKey, async (error, authData) => {
@@ -479,7 +479,7 @@ router.put('/:id' , authenticateUser, async (req, res) => {
             res.status(401).json('Error en verificar el token');
         } else {
             const userOrder = await db.query(`SELECT o.id FROM orders o INNER JOIN users u ON o.id_client = u.id 
-            WHERE u.id = ${authData.userId} AND o.id_order_status = 1`);
+            WHERE u.id = ${authData.userId} AND o.id_order_status = 1 AND o.id='${idParams}'`);
             
             if (userOrder[0].length != 0) {
                 db.query(`
@@ -489,7 +489,7 @@ router.put('/:id' , authenticateUser, async (req, res) => {
                         modification_date = "${modificationDate}"
                     WHERE o.id = ${userOrder[0].id}
                 `)
-                updateStockProduct(userOrder);
+                updateStockProduct(userOrder[0].id);
 
                 res.status(200).json('Se ha confirmado su compra');
             }  else {
