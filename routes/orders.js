@@ -349,7 +349,7 @@ router.get('/', authenticateUser, async (req, res) => {
             });
 
             await Promise.all(ordersInfoFn_1);
-            res.status(200).json(ordersInfoFn_1);
+            res.status(200).json(ordersInfoFn);
         } else {
             const ordersInfoFn = await ordersInfobySupervisor();
             res.status(200).json(ordersInfoFn);
