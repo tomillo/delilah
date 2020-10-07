@@ -4,8 +4,6 @@ info:
   description: Esta API gestionará la información del resto
   version: 1.0.0
 servers:
-# - url: https://virtserver.swaggerhub.com/josefinabortoletto/delilahRestoAPI/1.0.0
-#   description: SwaggerHub API Auto Mocking
 - url: http://localhost:3000
   description: Localhost
 paths:

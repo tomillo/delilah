@@ -1,5 +1,5 @@
 const Sequelize = require('sequelize');
-const config = require('./configdb');
+const config = require('./config');
 
 const {host, port, username, password, database} = config.database;
 
@@ -10,7 +10,7 @@ const sequelize = new Sequelize ({
     host,
     port,
     dialect: 'mysql',
-    logging: console.log
+    logging: false
 })
 
 const init = async () => {
@@ -24,7 +24,7 @@ const query = async (q) => {
                                     {
                                       raw: true, 
                                       plain: false, 
-                                      logging: console.log
+                                      logging: false
                                     });
       return rows;
     } catch (err) {
