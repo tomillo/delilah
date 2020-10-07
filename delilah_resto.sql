@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 03-10-2020 a las 22:07:05
+-- Tiempo de generación: 07-10-2020 a las 23:23:34
 -- Versión del servidor: 10.4.14-MariaDB
 -- Versión de PHP: 7.4.9
 
@@ -38,7 +38,8 @@ CREATE TABLE `favorites` (
 --
 
 INSERT INTO `favorites` (`id`, `id_client`, `id_product`) VALUES
-(1, 4, 5);
+(4, 1, 1),
+(5, 1, 10);
 
 -- --------------------------------------------------------
 
@@ -64,22 +65,8 @@ INSERT INTO `orders` (`id`, `id_client`, `id_payment_method`, `id_order_status`,
 (1, 18, 1, 1, '2020-09-28', '2020-09-28', 0),
 (2, 7, 1, 1, '2020-09-28', '2020-09-28', 11550),
 (3, 5, 1, 1, '2020-09-28', '2020-09-30', 9800),
-(4, 4, 1, 2, '2020-10-03', '2020-10-03', 700);
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `orders_history`
---
-
-CREATE TABLE `orders_history` (
-  `id` int(11) NOT NULL,
-  `id_order` int(11) NOT NULL,
-  `id_order_status` int(11) NOT NULL,
-  `entry_date` date DEFAULT NULL,
-  `id_product` int(11) DEFAULT NULL,
-  `observacion` varchar(60) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+(4, 4, 1, 1, '2020-10-03', '2020-10-05', 700),
+(5, 4, 1, 3, '2020-10-07', '2020-10-07', 1450);
 
 -- --------------------------------------------------------
 
@@ -130,8 +117,8 @@ INSERT INTO `order_detail` (`id`, `id_order`, `id_product`, `quantity`) VALUES
 (14, 2, 5, 3),
 (15, 2, 5, 3),
 (16, 2, 5, 3),
-(17, 2, 5, 3),
-(23, 4, 13, 2);
+(24, 5, 5, 4),
+(25, 5, 1, 1);
 
 -- --------------------------------------------------------
 
@@ -177,14 +164,13 @@ CREATE TABLE `products` (
 --
 
 INSERT INTO `products` (`id`, `product_name`, `description`, `photo`, `price`, `stock`, `entry_date`, `modification_date`, `id_status`) VALUES
-(1, 'Sandwich jamón y Queso', 'Sandwich con mayonesa, jamón y queso', 'www.lafoto22.com', 50, 1, '2020-09-19', '2020-09-19', 1),
-(5, 'Hamburguesa clasica', 'Hamburguesa con queso', 'www.lafoto22.com', 350, 10, '2020-09-27', '2020-09-27', 1),
+(1, 'Sandwich jamón y Queso', 'Sandwich con mayonesa, jamón y queso', 'www.lafoto22.com', 50, 0, '2020-09-19', '2020-09-19', 1),
+(5, 'Hamburguesa clasica', 'Hamburguesa con queso', 'www.lafoto22.com', 350, 6, '2020-09-27', '2020-09-27', 1),
 (8, 'Dips pescado', 'Dips de pollo con salsa de guacamole', 'www.lafoto22.com', 350, 10, '2020-09-27', '2020-09-27', 1),
 (9, 'Sandwich de milanesa', 'Sandwich de milanesa con lechuga y tomate', 'www.lafoto22.com', 350, 10, '2020-09-27', '2020-09-27', 1),
 (10, 'Sandwich de milanesa de pollo', 'Sandwich de milanesa de pollo con lechuga y tomate', 'www.lafoto22.com', 350, 10, '2020-09-27', '2020-09-27', 1),
 (11, 'Sandwich de milanesa de pollo', 'Sandwich de milanesa de pollo con lechuga y tomate', 'www.lafoto22.com', 350, 10, '2020-09-27', '2020-09-27', 1),
-(12, 'Ensalada cesar', 'Ensalada con pollo', 'www.lafoto22.com', 350, 10, '2020-09-27', '2020-09-27', 1),
-(13, 'Ensalada cesar', 'Ensalada con pollo', 'www.lafoto22.com', 350, 8, '2020-09-27', '2020-09-27', 1),
+(12, 'Ensalada cesar', 'Ensalada con pollo', 'www.lafoto22.com', 350, 6, '2020-09-27', '2020-09-27', 1),
 (14, 'Ensalada cesar', 'Ensalada con pollo', 'www.lafoto22.com', 350, 10, '2020-09-27', '2020-09-27', 1);
 
 -- --------------------------------------------------------
@@ -297,12 +283,6 @@ ALTER TABLE `orders`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indices de la tabla `orders_history`
---
-ALTER TABLE `orders_history`
-  ADD PRIMARY KEY (`id`);
-
---
 -- Indices de la tabla `orders_status`
 --
 ALTER TABLE `orders_status`
@@ -358,19 +338,13 @@ ALTER TABLE `user_status`
 -- AUTO_INCREMENT de la tabla `favorites`
 --
 ALTER TABLE `favorites`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT de la tabla `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
-
---
--- AUTO_INCREMENT de la tabla `orders_history`
---
-ALTER TABLE `orders_history`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT de la tabla `orders_status`
@@ -382,7 +356,7 @@ ALTER TABLE `orders_status`
 -- AUTO_INCREMENT de la tabla `order_detail`
 --
 ALTER TABLE `order_detail`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- AUTO_INCREMENT de la tabla `payment_methods`

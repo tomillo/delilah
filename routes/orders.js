@@ -349,6 +349,7 @@ router.get('/', authenticateUser, async (req, res) => {
             });
 
             await Promise.all(ordersInfoFn_1);
+            res.status(200).json(ordersInfoFn_1);
         } else {
             const ordersInfoFn = await ordersInfobySupervisor();
             res.status(200).json(ordersInfoFn);
@@ -491,18 +492,19 @@ router.patch('/:id' , authenticateUser, (req , res) => {
 //BORRAR UN PRODUCTO DE UNA ORDEN CON STATUS "NUEVA" CON ROL CLIENTE
 router.delete('/:id', authenticateUser, (req, res) => {
     const idParams = req.params.id;
+    const productDelete = req.body.productId;
     const modificationDate = moment().format("YYYY-MM-DD");
     jwt.verify(req.token, privateKey, async (error, authData) => {
         if (error) {
             res.status(401).json('Error en verificar el token');
-        } else {
+        } else if(authData.userId == idParams){
             const orderDetail = await db.query(`
                 SELECT od.id
                 FROM order_detail od
                 INNER JOIN orders o ON o.id = od.id_order
                 INNER JOIN users u ON o.id_client = u.id
                 WHERE u.id = ${authData.userId}
-                AND od.id_product = '${idParams}'
+                AND od.id_product = '${productDelete}'
                 AND o.id_order_status = 1
             `);
 
@@ -513,7 +515,9 @@ router.delete('/:id', authenticateUser, (req, res) => {
                 `);
             });
 
-            res.status(200).json(`El producto fue eliminado del carrito de compras`)
+            res.status(200).json(`El producto fue eliminado del carrito de compras.`)
+        }else{
+            res.status(401).json(`No esta autorizado a eliminar productos de otro usuario.`)
         }
     });
 });

@@ -7,7 +7,6 @@ const Sequelize = require('sequelize');
 const privateKey = "112358";
 const db = require("../db/mysql_connection");
 
-//ADMIN para ver todos los usuarios creados.
 
 async function orderDetailDelete(productId) {
     const ordersDetail = await db.sequelize.query(`
@@ -42,56 +41,6 @@ function authenticateUser(req, res, next) {
     }
 }
 
-async function isFavorites(productId, userId){
-    const favorite = db.sequelize.query(`
-        SELECT id
-        FROM favorites
-        WHERE id_client = '${userId}'
-        AND id_product = '${productId}'`,
-        {
-            type: db.Sequelize.QueryTypes.SELECT,
-            raw: true,
-            plain: false,
-            logging: console.log
-        }
-    ).then(result => (result));
-    return favorite;
-}
-
-async function favoritesInfo(userId) {
-    const favorites = db.sequelize.query(`
-    SELECT u.user, p.product_name
-    FROM products p 
-    INNER JOIN favorites f
-    ON f.id_product = p.id
-    INNER JOIN users u
-    ON u.id = f.id_client
-    WHERE u.id = '${userId}'`,
-        {
-            type: db.Sequelize.QueryTypes.SELECT,
-            raw: true,
-            plain: false,
-            logging: console.log
-        }
-    ).then(result => (result));
-    return favorites;
-}
-
-async function userExist(userId){
-    const user = db.sequelize.query(`
-        SELECT user
-        FROM users
-        WHERE id = '${userId}'`,
-        {
-            type: db.Sequelize.QueryTypes.SELECT,
-            raw: true,
-            plain: false,
-            logging: console.log
-        }
-    ).then(result => (result));
-    return user;
-}
-
 async function productExist(producId){
     const user = db.sequelize.query(`
         SELECT *
@@ -107,28 +56,6 @@ async function productExist(producId){
     return user;
 }
 
-// async function favoriteId(userId, productId){
-//     const favorite = db.sequelize.query(`
-//     SELECT id
-//     FROM favorites
-//     WHERE id_client = '${userId}'
-//     AND id_product = '${productId}'`,
-//     {
-//         type: db.Sequelize.QueryTypes.SELECT,
-//         raw: true,
-//         plain: false,
-//         logging: console.log
-//     }
-// ).then(result => (result));
-// return favorite; 
-// }
-
-async function favoritesDelete(favoriteId){
-    const favorite = db.query(`DELETE FROM favorites
-                                WHERE id = '${favoriteId}'`)
-    return favorite
-
-}
 router.get('/', (req, res) => {
     db.sequelize.query(`
         SELECT 
@@ -282,121 +209,5 @@ router.delete('/:id', authenticateUser, (req, res) => {
 })
 
 
-//AGREGA FAVORITOS POR ID DE USUARIO, VERIFICA QUE EL PRODUCTO EXISTA Y QUE NO SEA UN FAVORITO
-router.post('/favorites/:id', authenticateUser, async (req, res) => {
-    const idParams = req.params.id;
-    jwt.verify(req.token, privateKey, async (error, authData) => {
-        const product = await db.sequelize.query(`
-        SELECT 
-            id 
-        FROM products 
-        WHERE id = '${idParams}'`,
-            {
-                type: db.Sequelize.QueryTypes.SELECT,
-                raw: true,
-                plain: false,
-                logging: console.log
-            }
-        ).then(result => result);
 
-        const favorite = await isFavorites(idParams, authData.userId);
-
-        if (error) {
-            res.status(401).json('Error en verificar el token');
-        } else if (product.length != 0) {
-            if (favorite == 0) {
-                await db.sequelize.query(`
-                    INSERT INTO favorites(
-                        id_client, 
-                        id_product
-                    )
-                    VALUES(
-                        '${authData.userId}', 
-                        '${idParams}'   
-                    )`);
-                res.status(201).json(`Se ha agregado el producto a favoritos`);
-            } else {
-                res.status(401).json("El producto indicado ya es un favorito");
-            }
-        } else {
-            res.status(404).json("Producto no encontrado");
-        }
-    })
-})
-
-//VISUALIZAR FAVORITOS POR ID DE USUARIO, ADMINISTRADOR TODOS.
-//VALIDA TOKEN, QUE EXISTA EL USUARIO Y QUE TENGA FAVORITOS
-router.get('/favorites/:id', authenticateUser, (req, res) => {
-    const idParams = req.params.id;
-    jwt.verify(req.token, privateKey, async (error, authData) => {
-        if (error) {
-            res.status(401).json('Error en verificar el token');
-        } else if (authData.role == '3') {
-            if (authData.userId == idParams) {
-                const favoritesInfoFn = await favoritesInfo(authData.userId);
-                if (favoritesInfoFn.length != 0) {
-                    res.status(200).json(favoritesInfoFn);
-                } else {
-                    res.status(404).json('Aun no tienes cargado favoritos');
-                }
-            } else {
-                res.status(401).json('No está autorizado para ver los favoritos de otro usuario');
-            }
-
-        } else {
-            const userExistFn = await userExist(idParams);
-            const favoritesInfoFn = await favoritesInfo(idParams);
-            if (userExistFn.length != 0) {
-                if(favoritesInfoFn.length != 0){
-                res.status(200).json(favoritesInfoFn);
-                }else{
-                    res.status(404).json('El usuario indicado no tiene favoritos');
-                }
-            } else {
-                res.status(404).json('El usuario indicado no existe');
-            }
-        }
-    })
-})
-
-router.delete('/favorites/:id', authenticateUser, (req, res) => {
-    const idParams = req.params.id;
-    const favoriteDelete = req.body.favoriteDelete;
-   
-    jwt.verify(req.token, privateKey, async (error, authData) => {
-        if (error) {
-            res.status(401).json('Error en verificar el token');
-        } else if (authData.role == '3') {
-            if (authData.userId == idParams) {
-                const favoritesInfoFn = await isFavorites(favoriteDelete, authData.userId);
-                
-                if (favoritesInfoFn.length != 0) {
-                    await favoritesDelete(favoritesInfoFn[0].id);
-                    
-                    res.status(200).json('Favorito eliminado');
-                } else {
-                    res.status(404).json('El producto indicado no es un favorito');
-                }
-            } else {
-                res.status(401).json('No está autorizado para realizar esta acción');
-            }
-
-        } else {
-            const favoritesInfoFn = await isFavorites(favoriteDelete, idParams);
-            const userExistFn = await userExist(idParams);
-            
-            if (userExistFn.length != 0) {
-                if (favoritesInfoFn.length != 0) {
-
-                    await favoritesDelete(favoritesInfoFn[0].id);
-                    res.status(200).json('Favorito eliminado');
-                } else {
-                    res.status(404).json('El usuario indicado no tiene el producto indicado como favorito');
-                }
-            } else {
-                res.status(404).json('El usuario indicado no existe');
-            }
-        }
-    })
-})
 module.exports = router;

@@ -31,10 +31,10 @@ install sequelize
 1) Levantar XAMPP para comenzar a crear la base de datos.
 2) Dirigirse a PHPMy-Admin.
 3) Crear una base de datos llamada delilah_resto.
-4) Importar los datos situados en la carpeta.
-del proyecto para poder trabajar con el proyecto.
+4) Importar los datos (delilah_resto.sql) situados en la carpeta del proyecto para poder trabajar.
 5) Levantar el servidor y comprobar su funcionamiento.
-6) Ejecutar las rutas especificadas en Postman para corroborar su funcionamiento.
+6) Importar la colección en Postman (Delilah_Resto.postman_collection.json) situada en la carpeta del proyecto.
+7) Ejecutar las rutas especificadas en Postman para corroborar su funcionamiento.
 ```
 
 ## Ejecutando las pruebas (Usage)

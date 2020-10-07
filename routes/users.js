@@ -52,6 +52,63 @@ function authenticateUser(req, res, next) {
     }
 }
 
+async function isFavorites(productId, userId){
+    const favorite = db.sequelize.query(`
+        SELECT id
+        FROM favorites
+        WHERE id_client = '${userId}'
+        AND id_product = '${productId}'`,
+        {
+            type: db.Sequelize.QueryTypes.SELECT,
+            raw: true,
+            plain: false,
+            logging: console.log
+        }
+    ).then(result => (result));
+    return favorite;
+}
+
+async function favoritesInfo(userId) {
+    const favorites = db.sequelize.query(`
+    SELECT u.user, p.product_name
+    FROM products p 
+    INNER JOIN favorites f
+    ON f.id_product = p.id
+    INNER JOIN users u
+    ON u.id = f.id_client
+    WHERE u.id = '${userId}'`,
+        {
+            type: db.Sequelize.QueryTypes.SELECT,
+            raw: true,
+            plain: false,
+            logging: console.log
+        }
+    ).then(result => (result));
+    return favorites;
+}
+
+async function userExist(userId){
+    const user = db.sequelize.query(`
+        SELECT user
+        FROM users
+        WHERE id = '${userId}'`,
+        {
+            type: db.Sequelize.QueryTypes.SELECT,
+            raw: true,
+            plain: false,
+            logging: console.log
+        }
+    ).then(result => (result));
+    return user;
+}
+
+async function favoritesDelete(favoriteId){
+    const favorite = db.query(`DELETE FROM favorites
+                                WHERE id = '${favoriteId}'`)
+    return favorite
+
+}
+
 router.get('/', authenticateUser, (req, res) => {
     //validar el usuario que consulta
     jwt.verify(req.token, privateKey, (error, authData) => {
@@ -263,4 +320,122 @@ router.put('/:id', authenticateUser, (req, res) =>{
     })
 })
 
+//AGREGA FAVORITOS POR ID DE USUARIO, VERIFICA QUE EL PRODUCTO EXISTA Y QUE NO SEA UN FAVORITO
+router.post('/:id/favorites', authenticateUser, async (req, res) => {
+    const idParams = req.params.id;
+    const productId = req.body.productId;
+    jwt.verify(req.token, privateKey, async (error, authData) => {
+        const product = await db.sequelize.query(`
+        SELECT 
+            id 
+        FROM products 
+        WHERE id = '${productId}'`,
+            {
+                type: db.Sequelize.QueryTypes.SELECT,
+                raw: true,
+                plain: false,
+                logging: console.log
+            }
+        ).then(result => result);
+
+        const favorite = await isFavorites(productId, authData.userId);
+
+        if (error) {
+            res.status(401).json('Error en verificar el token');
+        } else if (product.length != 0) {
+            if (favorite == 0) {
+                await db.sequelize.query(`
+                    INSERT INTO favorites(
+                        id_client, 
+                        id_product
+                    )
+                    VALUES(
+                        '${authData.userId}', 
+                        '${productId}'   
+                    )`);
+                res.status(201).json(`Se ha agregado el producto a favoritos`);
+            } else {
+                res.status(401).json("El producto indicado ya es un favorito");
+            }
+        } else {
+            res.status(404).json("Producto no encontrado");
+        }
+    })
+})
+
+//VISUALIZAR FAVORITOS POR ID DE USUARIO, ADMINISTRADOR TODOS.
+//VALIDA TOKEN, QUE EXISTA EL USUARIO Y QUE TENGA FAVORITOS
+router.get('/:id/favorites', authenticateUser, (req, res) => {
+    const idParams = req.params.id;
+    jwt.verify(req.token, privateKey, async (error, authData) => {
+        if (error) {
+            res.status(401).json('Error en verificar el token');
+        } else if (authData.role == '3') {
+            if (authData.userId == idParams) {
+                const favoritesInfoFn = await favoritesInfo(authData.userId);
+                if (favoritesInfoFn.length != 0) {
+                    res.status(200).json(favoritesInfoFn);
+                } else {
+                    res.status(404).json('Aun no tienes cargado favoritos');
+                }
+            } else {
+                res.status(401).json('No está autorizado para ver los favoritos de otro usuario');
+            }
+
+        } else {
+            const userExistFn = await userExist(idParams);
+            const favoritesInfoFn = await favoritesInfo(idParams);
+            if (userExistFn.length != 0) {
+                if(favoritesInfoFn.length != 0){
+                res.status(200).json(favoritesInfoFn);
+                }else{
+                    res.status(404).json('El usuario indicado no tiene favoritos');
+                }
+            } else {
+                res.status(404).json('El usuario indicado no existe');
+            }
+        }
+    })
+})
+
+router.delete('/:id/favorites', authenticateUser, (req, res) => {
+    const idParams = req.params.id;
+    const favoriteDelete = req.body.favoriteDelete;
+   
+    jwt.verify(req.token, privateKey, async (error, authData) => {
+        if (error) {
+            res.status(401).json('Error en verificar el token');
+        } else if (authData.role == '3') {
+            if (authData.userId == idParams) {
+                const favoritesInfoFn = await isFavorites(favoriteDelete, authData.userId);
+                
+                if (favoritesInfoFn.length != 0) {
+                    await favoritesDelete(favoritesInfoFn[0].id);
+                    
+                    res.status(200).json('Favorito eliminado');
+                } else {
+                    res.status(404).json('El producto indicado no es un favorito');
+                }
+            } else {
+                res.status(401).json('No está autorizado para realizar esta acción');
+            }
+
+        } else {
+            const favoritesInfoFn = await isFavorites(favoriteDelete, idParams);
+            const userExistFn = await userExist(idParams);
+            
+            if (userExistFn.length != 0) {
+                if (favoritesInfoFn.length != 0) {
+
+                    await favoritesDelete(favoritesInfoFn[0].id);
+                    res.status(200).json('Favorito eliminado');
+                } else {
+                    res.status(404).json('El usuario indicado no tiene el producto indicado como favorito');
+                }
+            } else {
+                res.status(404).json('El usuario indicado no existe');
+            }
+        }
+    })
+})
 module.exports = router;
