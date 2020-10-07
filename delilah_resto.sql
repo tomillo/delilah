@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 07-10-2020 a las 23:23:34
+-- Tiempo de generación: 08-10-2020 a las 00:48:23
 -- Versión del servidor: 10.4.14-MariaDB
 -- Versión de PHP: 7.4.9
 
@@ -38,8 +38,8 @@ CREATE TABLE `favorites` (
 --
 
 INSERT INTO `favorites` (`id`, `id_client`, `id_product`) VALUES
-(4, 1, 1),
-(5, 1, 10);
+(1, 3, 1),
+(2, 3, 2);
 
 -- --------------------------------------------------------
 
@@ -62,11 +62,8 @@ CREATE TABLE `orders` (
 --
 
 INSERT INTO `orders` (`id`, `id_client`, `id_payment_method`, `id_order_status`, `entry_date`, `modification_date`, `total_order`) VALUES
-(1, 18, 1, 1, '2020-09-28', '2020-09-28', 0),
-(2, 7, 1, 1, '2020-09-28', '2020-09-28', 11550),
-(3, 5, 1, 1, '2020-09-28', '2020-09-30', 9800),
-(4, 4, 1, 1, '2020-10-03', '2020-10-05', 700),
-(5, 4, 1, 3, '2020-10-07', '2020-10-07', 1450);
+(1, 3, 1, 2, '2020-10-07', '2020-10-07', 3750),
+(2, 3, 1, 1, '2020-10-07', '2020-10-07', 450);
 
 -- --------------------------------------------------------
 
@@ -108,17 +105,9 @@ CREATE TABLE `order_detail` (
 --
 
 INSERT INTO `order_detail` (`id`, `id_order`, `id_product`, `quantity`) VALUES
-(8, 2, 5, 3),
-(9, 2, 5, 3),
-(10, 2, 5, 3),
-(11, 2, 5, 3),
-(12, 2, 5, 3),
-(13, 2, 5, 3),
-(14, 2, 5, 3),
-(15, 2, 5, 3),
-(16, 2, 5, 3),
-(24, 5, 5, 4),
-(25, 5, 1, 1);
+(1, 1, 1, 3),
+(2, 1, 2, 6),
+(3, 2, 2, 1);
 
 -- --------------------------------------------------------
 
@@ -164,14 +153,9 @@ CREATE TABLE `products` (
 --
 
 INSERT INTO `products` (`id`, `product_name`, `description`, `photo`, `price`, `stock`, `entry_date`, `modification_date`, `id_status`) VALUES
-(1, 'Sandwich jamón y Queso', 'Sandwich con mayonesa, jamón y queso', 'www.lafoto22.com', 50, 0, '2020-09-19', '2020-09-19', 1),
-(5, 'Hamburguesa clasica', 'Hamburguesa con queso', 'www.lafoto22.com', 350, 6, '2020-09-27', '2020-09-27', 1),
-(8, 'Dips pescado', 'Dips de pollo con salsa de guacamole', 'www.lafoto22.com', 350, 10, '2020-09-27', '2020-09-27', 1),
-(9, 'Sandwich de milanesa', 'Sandwich de milanesa con lechuga y tomate', 'www.lafoto22.com', 350, 10, '2020-09-27', '2020-09-27', 1),
-(10, 'Sandwich de milanesa de pollo', 'Sandwich de milanesa de pollo con lechuga y tomate', 'www.lafoto22.com', 350, 10, '2020-09-27', '2020-09-27', 1),
-(11, 'Sandwich de milanesa de pollo', 'Sandwich de milanesa de pollo con lechuga y tomate', 'www.lafoto22.com', 350, 10, '2020-09-27', '2020-09-27', 1),
-(12, 'Ensalada cesar', 'Ensalada con pollo', 'www.lafoto22.com', 350, 6, '2020-09-27', '2020-09-27', 1),
-(14, 'Ensalada cesar', 'Ensalada con pollo', 'www.lafoto22.com', 350, 10, '2020-09-27', '2020-09-27', 1);
+(1, 'Sandwich de milanesa', 'Sandwich de milanesa con lechuga y tomate', 'www.lafoto22.com', 350, 22, '2020-10-07', '2020-10-07', 1),
+(2, 'Hamburguesa vegie', 'Hamburguesa de hongos con lechuga y tomate', 'www.lafoto22.com', 450, 14, '2020-10-07', '2020-10-07', 1),
+(3, 'Hamburguesa doble', 'Doble hamburguesa, queso cheddar y tomate', 'www.lafoto22.com', 500, 32, '2020-10-07', '2020-10-07', 1);
 
 -- --------------------------------------------------------
 
@@ -239,13 +223,9 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `user`, `name`, `last_name`, `email`, `phone`, `address`, `password`, `entry_date`, `modification_date`, `id_status`, `id_role`) VALUES
-(1, 'jbortoletto', 'Josefina', 'Bortoletto', 'jbortoletto@gmail.com', '351444444', 'Gauss 619', '1123', '2020-09-09', '2020-09-09', 1, 1),
-(2, 'tromero', 'Tomas', 'Romero', 'tromero@gmail.com', '351444444', 'Gauss 619', '1123', '2020-09-10', '2020-09-10', 1, 3),
-(3, 'tomillo', 'Tomas', 'Reitman', 'treitman@gmail.com', '3456566', 'Langer 234', '1123', '2020-09-10', '2020-09-10', 1, 2),
-(4, 'fperez', 'Fabian', 'Perez', 'fperez@gmail.com', '351444444', 'Gauss 619', '1123', '2020-09-15', '2020-09-19', 1, 3),
-(5, 'jdominguez', 'Juan', 'Dominguez', 'jdominguez@gmail.com', '351444444', 'Gauss 619', '222', '2020-09-16', '2020-09-16', 1, 3),
-(7, 'ajbortoletto', 'Amadeo', 'Bortoletto', 'ajbortoletto@gmail.com', '2233', 'Encina 1220', '223344', '2020-09-24', '2020-09-24', 2, 3),
-(18, 'mgutierrez', 'Marisa', 'Gutierrez', 'mgut@gmail.com', '2233', 'Encina 1220', '223344', '2020-09-26', '2020-09-26', 1, 3);
+(1, 'jperez', 'Juan', 'Perez', 'jperez@gmail.com', '3515111111', 'Nunez 1220', '1234', '2020-10-07', '2020-10-07', 1, 1),
+(2, 'mgonzalez', 'Maria', 'Gonzalez', 'mgonzalez@gmail.com', '3515111111', 'Gauss 1220', '1123', '2020-10-07', '2020-10-07', 1, 2),
+(3, 'mramirez', 'Marcelo', 'Ramirez', 'mramirez@gmail.com', '3515111111', 'Naciones Unidas 1220', '11223', '2020-10-07', '2020-10-07', 1, 3);
 
 -- --------------------------------------------------------
 
@@ -338,13 +318,13 @@ ALTER TABLE `user_status`
 -- AUTO_INCREMENT de la tabla `favorites`
 --
 ALTER TABLE `favorites`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT de la tabla `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT de la tabla `orders_status`
@@ -356,7 +336,7 @@ ALTER TABLE `orders_status`
 -- AUTO_INCREMENT de la tabla `order_detail`
 --
 ALTER TABLE `order_detail`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT de la tabla `payment_methods`
@@ -368,7 +348,7 @@ ALTER TABLE `payment_methods`
 -- AUTO_INCREMENT de la tabla `products`
 --
 ALTER TABLE `products`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT de la tabla `products_status`
@@ -386,7 +366,7 @@ ALTER TABLE `role`
 -- AUTO_INCREMENT de la tabla `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT de la tabla `user_status`
