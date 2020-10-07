@@ -337,9 +337,9 @@ router.get('/', authenticateUser, async (req, res) => {
         } else if (authData.role == '3') {
             res.status(401).json('No esta autorizado a realizar la consulta');
         } else if (authData.role == '1') {
-            let ordersInfoFn = await ordersInfo();
+            const ordersInfoFn = await ordersInfo();
 
-            ordersInfoFn.map(async (order) => {
+            const ordersInfoFn_1 = ordersInfoFn.map(async (order) => {
                 order.order_detail = [];
                 const orderProductsFn = await orderProducts(order.id);
 
@@ -347,9 +347,8 @@ router.get('/', authenticateUser, async (req, res) => {
                     order.order_detail.push(products);
                 });
             });
-            setTimeout(() => {
-                res.status(200).json(ordersInfoFn);
-            }, 100);
+
+            await Promise.all(ordersInfoFn_1);
         } else {
             const ordersInfoFn = await ordersInfobySupervisor();
             res.status(200).json(ordersInfoFn);

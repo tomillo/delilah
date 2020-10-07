@@ -422,6 +422,32 @@ paths:
           description: El pedido indicado no existe.
       security:
       - jwtAuth: []
+    delete:
+      tags:
+      - admin
+      - client
+      summary: Eliminar una orden especifica
+      description: Eliminar una orden en la base de datos
+      parameters:
+      - name: id
+        in: path
+        description: Id de la orden
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+          example: 1234
+      responses:
+        "200":
+          description: Orden eliminada
+        "401":
+          description: Error al verificar el token
+        "404":
+          description: La orden indicada no existe.
+      security:
+      - jwtAuth: []  
 components:
   schemas:
     users:
