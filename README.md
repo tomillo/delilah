@@ -49,11 +49,12 @@ install sequelize
     ('POST/login') # Logearse con el usuario creado y guardar TOKEN.
     ('GET/users/:ID') # Generar un GET del usuario creado con el TOKEN generado + (Generar el GET de otro usuario !error).
     ('PUT/users/:ID') # Modificar el Usuario creado con el TOKEN generado + (Generar el PUT de otro usuario !error).
+    ('POST/users/:ID/favorites') # Agregar un producto a favoritos con el TOKEN generado.
+    ('GET/users/:ID/favorites') # Listar los productos favoritos del usuario con el TOKEN generado.
+    ('DELETE/users/:ID/favorites') # Eliminar el producto favoritos del usuario con el TOKEN generado.
 
     ('GET/products') # Traer el listado de Productos.
     ('GET/products/:ID') # Traer el producto seleccionado + (Generar el GET de un producto inexistente !error).
-    ('POST/products/:ID/favorites') # Agregar un producto a favoritos con el TOKEN generado.
-    ('GET/products/favorites') # Listar los productos favoritos del usuario con el TOKEN generado.
 
     ('POST/orders') # Generar una nueva orden de pedido con el TOKEN generado.
     ('PUT/orders/:ID') # Confirmar la orden generada con el TOKEN generado.
@@ -67,12 +68,13 @@ install sequelize
     ('POST/users') # Generar un nuevo usuario (Cliente).
     ('POST/login') # Logearse con el usuario creado y guardar TOKEN.
     ('GET/users/:ID') # Generar un GET del usuario deseado con el TOKEN generado + (Generar el GET de un usuario inexistente !error).
+    ('POST/users/:ID/favorites') # Agregar un producto a favoritos con el TOKEN generado.
+    ('GET/users/:ID/favorites') # Listar los productos favoritos del usuario con el TOKEN generado.
+    ('DELETE/users/:ID/favorites') # Eliminar el producto favoritos del usuario con el TOKEN generado.
 
     ('GET/products') # Traer el listado de Productos.
     ('GET/products/:ID') # Traer el producto seleccionado con el TOKEN generado + (Generar el GET de un producto inexistente !error).
     ('DELETE/products/:ID') #Eliminar un producto con el TOKEN generado + (Generar el DELETE de un producto inexistente !error).
-    ('POST/products/:ID/favorites') # Agregar un producto a favoritos con el TOKEN generado.
-    ('GET/products/favorites') # Listar los productos favoritos del usuario con el TOKEN generado.
 
     ('GET/orders') # Traer el listado de todas las ordenes con el TOKEN generado. 
     ('GET/orders/:ID') # Traer la orden especifica con el TOKEN generado + (Generar el GET de una orden inexistente !error).
@@ -90,14 +92,15 @@ install sequelize
     ('GET/users') # Traer el listado de todos los Usuarios.
     ('GET/users/:ID') # Generar un GET del usuario deseado con el TOKEN generado + (Generar el GET de un usuario inexistente !error).
     ('PUT/users/:ID') # Modificar un usuario deseado con el TOKEN generado + (Modificar un usuario inexistente !error).
+    ('POST/users/:ID/favorites') # Agregar un producto a favoritos con el TOKEN generado.
+    ('GET/users/:ID/favorites') # Listar los productos favoritos del usuario con el TOKEN generado.
+    ('DELETE/users/:ID/favorites') # Eliminar el producto favoritos del usuario con el TOKEN generado.
 
     ('GET/products') # Traer el listado de Productos.
     ('GET/products/:ID') # Traer el producto seleccionado con el TOKEN generado + (Generar el GET de un producto inexistente !error).
     ('POST/products') # Generar un nuevo producto con el TOKEN generado.
     ('PUT/products/:ID') # Modificar un producto con el TOKEN generado + (Generar el PUT de un producto inexistente !error).
     ('DELETE/products/:ID') #Eliminar un producto con el TOKEN generado + (Generar el DELETE de un producto inexistente !error).
-    ('POST/products/:ID/favorites') # Agregar un producto a favoritos con el TOKEN generado.
-    ('GET/products/favorites') # Listar los productos favoritos del usuario con el TOKEN generado.
 
     ('GET/orders') # Traer el listado de Ordenes ya Confirmadas con el TOKEN generado. 
     ('GET/orders/:ID') # Traer la orden especifica con el TOKEN generado + (Generar el GET de una orden inexistente !error).
