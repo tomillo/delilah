@@ -448,6 +448,122 @@ paths:
           description: La orden indicada no existe.
       security:
       - jwtAuth: []  
+  /users/{id}/favorites:
+    get:
+      tags:
+      - client
+      summary: Obtener todos los productos favoritos del usuario
+      description: Obtener los favoritos del usuario
+      parameters:
+      - name: id
+        in: path
+        description: Id del usuario
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+          example: 1234
+      responses:
+        "200":
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    user:
+                      type: string
+                      example: 'johndoe'
+                      description: 'User'
+                    product_name:
+                      type: string
+                      example: 'Milanesa con papas fritas'
+                      description: 'Product'
+        "401":
+          description: No está autorizado para ver los favoritos de otro usuario
+        "404":
+          description: Aun no tienes cargado favoritos
+      security:
+      - jwtAuth: []
+    post:
+      tags:
+      - client
+      summary: Agregar nuevo favorito
+      description: Agregar nuevo favorito en la base de datos
+      parameters:
+      - name: id
+        in: path
+        description: Id del pedido
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+          example: 1234
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - productId
+              properties:
+                productId:
+                  type: number
+                  example: 1
+                  description: 'Product ID'
+      responses:
+        "200":
+          description: Se ha agregado el producto a favoritos
+        "401":
+          description: El producto indicado ya es un favorito
+        "404":
+          description: Producto no encontrado
+      security:
+      - jwtAuth: []
+    delete:
+      tags:
+      - client
+      summary: Eliminar un producto en favoritos
+      description: Eliminar un producto en favoritos
+      parameters:
+      - name: id
+        in: path
+        description: Id de la orden
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+          example: 1234
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - favoriteDelete
+              properties:
+                favoriteDelete:
+                  type: number
+                  example: 1
+                  description: 'Product ID'
+        required: true
+      responses:
+        "200":
+          description: Favorito eliminado
+        "401":
+          description: No está autorizado para realizar esta acción
+        "404":
+          description: El usuario indicado no existe
+      security:
+      - jwtAuth: []  
 components:
   schemas:
     users:
