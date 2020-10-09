@@ -58,8 +58,13 @@ install sequelize
     ('GET/products/:ID') # Traer el producto seleccionado + (Generar el GET de un producto inexistente !error).
 
     ('POST/orders') # Generar una nueva orden de pedido con el TOKEN generado.
-    ('PUT/orders/:ID') # Confirmar la orden generada con el TOKEN generado.
+    #Enviar en Postman el request body de un solo producto con su cantidad especificada. (En caso de querer agregar otro producto generar otro post indicado otro Id de Producto y su cantidad. Este mismo se va agregar a order_detail pero conforma parte de la misma orderId). 
+    #Un usuario solamente puede tener una orden con estado Nueva (order_status: "1"). Si al agregar un producto el usuario no tiene ninguna orden con status Nueva, primero se crea la orden y luego se agrega el producto indicado. Si el usuario ya posee una orden con status Nueva, el producto enviado se agregara a la orden_detail referenciada a esa orden. 
+    #Para confirmar una orden de status 1 ("nueva"), utilizar la ruta PUT/orders/:Id y pasar a "Confirmada"
+    ('PUT/orders/:ID') # Confirmar la orden generada con el TOKEN generado. 
+    #Por parametro se debe enviar el Id de la orden a confirmar, enviando en el Body la forma de pago. De esta manera esta orden pasara a status Confirmado.
     ('DELETE/orders/:ID') # Eliminar la orden completa o productos de la orden con el TOKEN generado.
+    #Endpoint generado para eliminar productos especificos de una orden unicamente en casos de que la orden_status sea igual a 1. Las productos no pueden ser eliminados si la orden ya fue confirmada.
     ('GET/orders/:ID') # Traer el listado de ordenes del usuario con el TOKEN generado.
 
 !!!!!!!!----------------------------------------!!!!!!!!!!!!
@@ -82,7 +87,6 @@ install sequelize
     ('POST/orders') # Generar una nueva orden de pedido con el TOKEN generado.
     ('PUT/orders/:ID') # Generar una nueva orden de pedido con el TOKEN generado + (Generar el PUT de una orden inexistente !error).
     ('PATCH/orders/:ID') # Modificar el estado de una orden: De Confirmada a Preparando a Enviando a Entregado + (Generar el PATCH de una orden inexistente !error).
-    ('DELETE/orders/:ID') # Eliminar la orden completa o productos de la orden con el TOKEN generado.
 
 !!!!!!!!----------------------------------------!!!!!!!!!!!!
 
@@ -108,7 +112,6 @@ install sequelize
     ('POST/orders') # Generar una nueva orden de pedido con el TOKEN generado.
     ('PUT/orders/:ID') # Generar una nueva orden de pedido con el TOKEN generado + (Generar el PUT de una orden inexistente !error).
     ('PATCH/orders/:ID') # Modificar el estado de una orden: De Confirmada a Preparando a Enviando a Entregado + (Generar el PATCH de una orden inexistente !error).
-    ('DELETE/orders/:ID') # Eliminar la orden completa o productos de la orden con el TOKEN generado.
 ```
 
 ## Construido con:

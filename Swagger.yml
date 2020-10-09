@@ -33,8 +33,18 @@ paths:
                     type: string
                     example: 'Error en verificar el token'
                     description: 'Error'
-        "500":
-          description: No existen usuarios creados
+        "404":
+          description: No esta autorizado a realizar esta consulta
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: 'No esta autorizado a realizar esta consulta'
+                    description: 'Error'
+        
       security:
       - jwtAuth: []
     post:
@@ -98,8 +108,23 @@ paths:
                     type: string
                     example: 'Error en verificar el token'
                     description: 'Error'
+        "404":
+          description: No esta autorizado a realizar esta consulta
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: 'No esta autorizado a realizar esta consulta'
+                    description: 'Error'
         "500":
           description: Usuario no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/users'
       security:
       - jwtAuth: []
     put:
@@ -124,13 +149,15 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/users'
+              $ref: '#/components/schemas/usersUpdate'
       responses:
         "200":
           description: El usuario fue modificado correctamente
         "401":
           description: Error al verificar el token
         "404":
+          description: Su usuario no esta autorizado a realizar la siguiente accion
+        "500":
           description: El usuario indicado no existe
       security:
       - jwtAuth: []
@@ -226,8 +253,10 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/products'
-        "500":
-          description: No pudo crearse el producto
+        "401":
+          description: Error al verificar el token    
+        "404":
+          description: No esta autorizado a realizar la siguiente accion        
       security:
       - jwtAuth: []
   /products/{id}:
@@ -278,7 +307,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/products'
+              $ref: '#/components/schemas/productsUpdate'
       responses:
         "200":
           description: Producto modificado
@@ -309,7 +338,7 @@ paths:
           description: Producto eliminado
         "401":
           description: Error al verificar el token
-        "404":
+        "500":
           description: El producto indicado no existe.
       security:
       - jwtAuth: []  
@@ -337,7 +366,7 @@ paths:
       tags:
       - client
       summary: Realizar un nuevo pedido
-      description: Crear un nuevo pedido en la base de datos
+      description: Enviar en Postman el request body de un solo producto con su cantidad especificada. (En caso de querer agregar otro producto generar otro post indicado otro Id de Producto y su cantidad. Este mismo se va agregar a order_detail pero conforma parte de la misma orderId). Un usuario solamente puede tener una orden con estado Nueva (order_status 1). Si al agregar un producto el usuario no tiene ninguna orden con status Nueva, primero se crea la orden y luego se agrega el producto indicado. Si el usuario ya posee una orden con status Nueva, el producto enviado se agregara a la orden_detail referenciada a esa orden. Para confirmar una orden de status 1 ("nueva"), utilizar la ruta PUT/orders/:Id y pasar a "Confirmada".
       requestBody:
         content:
           application/json:
@@ -389,15 +418,15 @@ paths:
           description: El pedido indicado no existe
       security:
       - jwtAuth: []
-    put:
+    patch:
       tags:
       - admin
       summary: Actualizar un pedido especifico
-      description: Actualizar un pedido creado en la base de datos
+      description: Actualizar el estado de una orden.  
       parameters:
       - name: id
         in: path
-        description: Id del pedido
+        description: Id de la orden
         required: true
         style: simple
         explode: false
@@ -410,22 +439,50 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/orders'
+              $ref: '#/components/schemas/ordersModification'
       responses:
         "200":
-          description: Pedido modificado
+          description: Has cambiado la orden IdOrden a IdStatus exitosamente
         "401":
-          description: Error al verificar el token
+          description: No esta autorizado a realizar esta accion
+      security:
+      - jwtAuth: []
+    put:
+      tags:
+      - client
+      summary: Actualizar un pedido especifico
+      description: Endpoint para confirmar una orden.   
+      parameters:
+      - name: id
+        in: path
+        description: Id de la orden
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+          example: 1
+      requestBody:
+        description: Contenido a modificar
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ordersUpdates'
+      responses:
+        "200":
+          description: Se ha confirmado su compra
+        "401":
+          description: Error en verificar el Token
         "404":
-          description: El pedido indicado no existe.
+          description: La orden indicada no existe
       security:
       - jwtAuth: []
     delete:
       tags:
-      - admin
       - client
-      summary: Eliminar una orden especifica
-      description: Eliminar una orden en la base de datos
+      summary: Eliminar un producto de una orden especifica
+      description: Endpoint generado para eliminar productos especificos de una orden unicamente en casos de que la orden_status sea igual a 1. Las productos no pueden ser eliminados si la orden ya fue confirmada.
       parameters:
       - name: id
         in: path
@@ -439,11 +496,11 @@ paths:
           example: 1234
       responses:
         "200":
-          description: Orden eliminada
+          description: El producto fue eliminado de la orden de compra
         "401":
           description: Error al verificar el token
         "404":
-          description: La orden indicada no existe.
+          description: No esta autorizado a eliminar productos de otro usuario.
       security:
       - jwtAuth: []  
   /users/{id}/favorites:
@@ -540,19 +597,6 @@ paths:
           type: integer
           format: int64
           example: 1234
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-              - favoriteDelete
-              properties:
-                favoriteDelete:
-                  type: number
-                  example: 1
-                  description: 'Product ID'
-        required: true
       responses:
         "200":
           description: Favorito eliminado
@@ -610,6 +654,37 @@ components:
         role:
           type: integer
           example: 1
+    usersUpdate:
+      required:
+      - name
+      - last_name
+      - phone
+      - address
+      - password
+            
+      type: object
+      properties:
+        name:
+          type: string
+          example: Regina
+        last_name:
+          type: string
+          example: Filangie   
+        phone:
+          type: number
+          example: 5493513222111
+        address:
+          type: string
+          example: Central Perk
+        password:
+          type: string
+          example: rf1123
+        status:
+          type: integer
+          example: 1
+        role:
+          type: integer
+          example: 1
     products:
       required:
       - product_name
@@ -651,46 +726,56 @@ components:
         id_status:
           type: integer
           example: Activo
+    productsUpdate:
+      required:
+      - product
+      - description
+      - photo
+      - price
+      - stock
+      - id_status
+      type: object
+      properties:
+        product:
+          type: string
+          example: Hambuerguesa clasica
+        description:
+          type: string
+          example: Hamburguesa casera de carne vacuna, queso cheddar, lechuga y tomate
+        photo:
+          type: string
+          example: https://www.imgProductos.com/1.jpg
+        price:
+          type: string
+          example: "350"
+        stock:
+          type: number
+          example: 3
+        id_status:
+          type: integer
+          example: Activo
+          
     orders:
       type: object
       properties:
-        id:
+        productId:
           type: integer
           example: 1
-        id_client:
+        quantity:
           type: integer
           example: 2
-        id_paymenth_method:
+    ordersModification:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 3
+    ordersUpdates:
+      type: object
+      properties:
+        paymentMethod:
           type: integer
           example: 1
-        id_order_status:
-          type: string
-          example: 1
-        products:
-          type: array
-          items:
-            type: object
-            properties:
-              id:
-                type: integer
-                example: 6
-              id_product:
-                type: integer
-                example: 12
-              quantity:
-                type: integer
-                example: 2
-        order_date:
-          type: string
-          format: date
-          example: "2019-01-11"
-        modif_date:
-          type: string
-          format: date
-          example: "2019-01-11"
-        total_order:
-          type: integer
-          example: 350
   securitySchemes:
     jwtAuth:
       type: http
