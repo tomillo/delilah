@@ -459,7 +459,7 @@ router.put('/:id' , authenticateUser, async (req, res) => {
 
                 res.status(200).json('Se ha confirmado su compra');
             }  else {
-                res.status(404).json('Esta orden no existe');
+                res.status(404).json('La orden indicada no existe');
             }
         } 
     })
@@ -496,7 +496,7 @@ router.delete('/:id', authenticateUser, (req, res) => {
     const modificationDate = moment().format("YYYY-MM-DD");
     jwt.verify(req.token, privateKey, async (error, authData) => {
         if (error) {
-            res.status(401).json('Error en verificar el token');
+            res.status(401).json('Error al verificar el token');
         } else if(authData.userId == idParams){
             const orderDetail = await db.query(`
                 SELECT od.id
@@ -517,7 +517,7 @@ router.delete('/:id', authenticateUser, (req, res) => {
 
             res.status(200).json(`El producto fue eliminado del carrito de compras.`)
         }else{
-            res.status(401).json(`No esta autorizado a eliminar productos de otro usuario.`)
+            res.status(404).json(`No esta autorizado a eliminar productos de otro usuario.`)
         }
     });
 });

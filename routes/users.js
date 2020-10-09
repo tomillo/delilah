@@ -115,7 +115,7 @@ router.get('/', authenticateUser, (req, res) => {
         if (error) {
             res.status(401).json('Error en verificar el token');
         } else if (authData.role != '1') {
-            res.status(401).json('No esta autorizado a realizar la consulta');
+            res.status(404).json('No esta autorizado a realizar esta consulta');
         } else {
             db.sequelize.query(`
                 SELECT  u.user,
@@ -211,7 +211,7 @@ router.get('/:id', authenticateUser, (req, res) => {
                     }
                 ).then(result => res.status(200).json(result));
             } else {
-				res.status(404).json('Usuario no encontrado');
+				res.status(500).json('Usuario no encontrado');
 			}
 
         }
@@ -282,7 +282,7 @@ router.put('/:id', authenticateUser, (req, res) =>{
                 
                 res.status(200).json(`El Usuario fue modificado correctamente`);
             } else {
-                res.status(401).json('Su usuario no esta autorizado para ejecutar esta acción');
+                res.status(404).json('Su usuario no esta autorizado para ejecutar esta acción');
             }
         } else if (authData.role == 1) {
             const searchUser = await db.sequelize.query(`
@@ -312,7 +312,7 @@ router.put('/:id', authenticateUser, (req, res) =>{
                 
                 res.status(200).json(`El usuario fue modificado correctamente`);
             } else {
-				res.status(404).json('El usuario indicado no existe');
+				res.status(500).json('El usuario indicado no existe');
 			}
         } else {
             res.status(401).json('No está autorizado para modificar usuarios');
