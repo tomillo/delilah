@@ -114,7 +114,7 @@ router.post('/', authenticateUser, (req, res) => {
         if (error) {
             res.status(401).json('Error en verificar el token');
         } else if (authData.role != '1') {
-            res.status(401).json('No esta autorizado a crear un producto');
+            res.status(404).json('No esta autorizado a crear un producto');
         } else {
             db.query(`
                 INSERT INTO products(
@@ -200,7 +200,7 @@ router.delete('/:id', authenticateUser, (req, res) => {
 
                 res.status(200).json(`El producto fue eliminado correctamente`);
             } else {
-                res.status(404).json(`El producto indicado no existe`);
+                res.status(500).json(`El producto indicado no existe`);
             }
         } else {
             res.status(401).json('No esta autorizado a realizar esta acción');
